@@ -38,7 +38,7 @@ export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps
                 <TableRow key={appointment.id}>
                   <TableCell className="font-medium">{appointment.entity?.name}</TableCell>
                   <TableCell>
-                    {new Date(`${appointment.appointment_date}T${appointment.appointment_time}`).toLocaleString()}
+                    {new Date(appointment.date_time).toLocaleString()}
                   </TableCell>
                   <TableCell>
                     <Badge

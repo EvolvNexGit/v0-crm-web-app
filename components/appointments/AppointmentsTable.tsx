@@ -30,7 +30,7 @@ export function AppointmentsTable({
   const filteredAppointments = appointments.filter(
     (apt) =>
       apt.entity?.name.toLowerCase().includes(search.toLowerCase()) ||
-      apt.appointment_date.includes(search) ||
+      apt.date_time.includes(search) ||
       apt.status.toLowerCase().includes(search.toLowerCase())
   )
 
@@ -69,8 +69,7 @@ export function AppointmentsTable({
           <TableHeader>
             <TableRow>
               <TableHead>Customer</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Time</TableHead>
+              <TableHead>Date & Time</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Notes</TableHead>
             </TableRow>
@@ -78,7 +77,7 @@ export function AppointmentsTable({
           <TableBody>
             {filteredAppointments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                   {appointments.length === 0
                     ? 'No appointments scheduled. Add one to get started!'
                     : 'No appointments match your search.'}
@@ -91,10 +90,7 @@ export function AppointmentsTable({
                     {appointment.entity?.name}
                   </TableCell>
                   <TableCell className="text-sm">
-                    {new Date(appointment.appointment_date).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {appointment.appointment_time}
+                    {new Date(appointment.date_time).toLocaleString()}
                   </TableCell>
                   <TableCell>
                     <Badge variant={getStatusColor(appointment.status)}>

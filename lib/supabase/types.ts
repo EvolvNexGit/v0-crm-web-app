@@ -1,16 +1,15 @@
 export type Tenant = {
   id: string
   name: string
+  industry_type: string
   created_at: string
-  updated_at: string
 }
 
 export type User = {
   id: string
-  email: string
   tenant_id: string
+  role: string
   created_at: string
-  updated_at: string
 }
 
 export type Entity = {
@@ -20,23 +19,21 @@ export type Entity = {
   name: string
   phone: string
   email: string
-  type: 'Individual' | 'Business' | 'Organization'
+  type: string
   created_at: string
-  updated_at: string
 }
 
 export type Appointment = {
   id: string
   tenant_id: string
   entity_id: string
-  appointment_date: string
-  appointment_time: string
-  status: 'Scheduled' | 'Completed' | 'Cancelled' | 'Rescheduled'
+  date_time: string
+  status: string
   notes: string | null
   created_at: string
-  updated_at: string
 }
 
 export type EntityWithAppointments = Entity & {
   appointments?: Appointment[]
 }
+

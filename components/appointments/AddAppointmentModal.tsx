@@ -40,8 +40,7 @@ export function AddAppointmentModal({
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     entity_id: '',
-    appointment_date: '',
-    appointment_time: '',
+    date_time: '',
     status: 'Scheduled',
     notes: '',
   })
@@ -70,8 +69,7 @@ export function AddAppointmentModal({
       toast.success('Appointment added successfully!')
       setFormData({
         entity_id: '',
-        appointment_date: '',
-        appointment_time: '',
+        date_time: '',
         status: 'Scheduled',
         notes: '',
       })
@@ -120,27 +118,13 @@ export function AddAppointmentModal({
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="appointment_date">Date *</FieldLabel>
+            <FieldLabel htmlFor="date_time">Date & Time *</FieldLabel>
             <Input
-              id="appointment_date"
-              type="date"
-              value={formData.appointment_date}
+              id="date_time"
+              type="datetime-local"
+              value={formData.date_time}
               onChange={(e) =>
-                setFormData({ ...formData, appointment_date: e.target.value })
-              }
-              required
-              disabled={loading}
-            />
-          </Field>
-
-          <Field>
-            <FieldLabel htmlFor="appointment_time">Time *</FieldLabel>
-            <Input
-              id="appointment_time"
-              type="time"
-              value={formData.appointment_time}
-              onChange={(e) =>
-                setFormData({ ...formData, appointment_time: e.target.value })
+                setFormData({ ...formData, date_time: e.target.value })
               }
               required
               disabled={loading}

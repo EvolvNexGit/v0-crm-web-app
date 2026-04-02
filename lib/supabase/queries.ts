@@ -134,7 +134,7 @@ export async function getAppointments(limit?: number) {
       entity:entities(*)
     `)
     .eq('tenant_id', currentUser.tenant_id)
-    .order('appointment_date', { ascending: true })
+    .order('date_time', { ascending: true })
 
   if (limit) {
     query = query.limit(limit)
@@ -211,8 +211,8 @@ export async function getDashboardStats() {
       .from('appointments')
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', currentUser.tenant_id)
-      .gte('appointment_date', todayStr)
-      .lt('appointment_date', new Date(today.getTime() + 86400000).toISOString().split('T')[0]),
+      .gte('date_time', todayStr)
+      .lt('date_time', new Date(today.getTime() + 86400000).toISOString()),
     supabase
       .from('entities')
       .select('*', { count: 'exact', head: true })

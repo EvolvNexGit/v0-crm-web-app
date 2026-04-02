@@ -15,10 +15,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { entity_id, appointment_date, appointment_time, status, notes } = body
+    const { entity_id, date_time, status, notes } = body
 
     // Validate required fields
-    if (!entity_id || !appointment_date || !appointment_time || !status) {
+    if (!entity_id || !date_time || !status) {
       return NextResponse.json(
         { message: 'Missing required fields' },
         { status: 400 }
@@ -47,8 +47,7 @@ export async function POST(request: NextRequest) {
         {
           tenant_id: currentUser.tenant_id,
           entity_id,
-          appointment_date,
-          appointment_time,
+          date_time,
           status,
           notes: notes || null,
         },
