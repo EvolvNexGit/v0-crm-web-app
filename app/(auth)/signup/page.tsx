@@ -19,7 +19,6 @@ e.preventDefault()
 setError("")
 setLoading(true)
 
-```
 try {
   // 1. Create auth user
   const { data: authData, error: authError } =
@@ -85,18 +84,19 @@ try {
 } finally {
   setLoading(false)
 }
-```
-
 }
 
-return ( <div className="flex min-h-screen items-center justify-center bg-gray-100"> <form
-     onSubmit={handleSignup}
-     className="bg-white p-6 rounded-xl shadow-md w-full max-w-md"
-   > <h2 className="text-xl font-semibold mb-4">
-Create EvolvNex Account </h2>
+return (
+  <div className="flex min-h-screen items-center justify-center bg-gray-100">
+    <form
+      onSubmit={handleSignup}
+      className="bg-white p-6 rounded-xl shadow-md w-full max-w-md"
+    >
+      <h2 className="text-xl font-semibold mb-4">
+        Create EvolvNex Account
+      </h2>
 
-```
-    <input
+      <input
       type="text"
       placeholder="Organization Name"
       value={orgName}
@@ -127,16 +127,14 @@ Create EvolvNex Account </h2>
       <p className="text-red-500 text-sm mb-3">{error}</p>
     )}
 
-    <button
-      type="submit"
-      disabled={loading}
-      className="w-full bg-black text-white py-2 rounded"
-    >
-      {loading ? "Creating..." : "Create Account"}
-    </button>
-  </form>
-</div>
-```
-
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-black text-white py-2 rounded"
+      >
+        {loading ? "Creating..." : "Create Account"}
+      </button>
+    </form>
+  </div>
 )
 }
