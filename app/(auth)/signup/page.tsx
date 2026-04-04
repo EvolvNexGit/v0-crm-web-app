@@ -77,7 +77,7 @@ try {
   }
 
   // 4. Redirect
-  router.push("/")
+  router.push("/dashboard")
 } catch (err: any) {
   console.error(err)
   setError(err.message || "Something went wrong")
