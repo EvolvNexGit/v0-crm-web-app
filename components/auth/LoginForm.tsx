@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldLabel } from '@/components/ui/field'
-import Link from 'next/link'
 import { Spinner } from '@/components/ui/spinner'
 
 export function LoginForm() {
@@ -43,17 +42,17 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Login to EvolvNex CRM</CardTitle>
-        <CardDescription>
-          Enter your email and password to access your account
+    <Card className="w-full border-gray-200 shadow-lg">
+      <CardHeader className="border-b border-gray-200">
+        <CardTitle className="text-2xl text-black">Sign in to CRM</CardTitle>
+        <CardDescription className="text-gray-600">
+          Enter your credentials to access your account
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-5">
           <Field>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
+            <FieldLabel htmlFor="email" className="text-black font-medium">Email Address</FieldLabel>
             <Input
               id="email"
               type="email"
@@ -62,11 +61,12 @@ export function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
+              className="border-gray-300 bg-white text-black placeholder:text-gray-500"
             />
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="password">Password</FieldLabel>
+            <FieldLabel htmlFor="password" className="text-black font-medium">Password</FieldLabel>
             <Input
               id="password"
               type="password"
@@ -75,16 +75,22 @@ export function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
+              className="border-gray-300 bg-white text-black placeholder:text-gray-500"
             />
           </Field>
 
           {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
+            <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
+              <p className="font-medium">Error</p>
+              <p className="mt-1">{error}</p>
             </div>
           )}
 
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button 
+            type="submit" 
+            className="w-full bg-black text-white hover:bg-gray-900 font-medium h-11" 
+            disabled={loading}
+          >
             {loading ? (
               <>
                 <Spinner className="mr-2 h-4 w-4" />
@@ -95,13 +101,6 @@ export function LoginForm() {
             )}
           </Button>
         </form>
-
-        <p className="mt-4 text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{' '}
-          <Link href="/signup" className="font-medium text-primary hover:underline">
-            Sign up
-          </Link>
-        </p>
       </CardContent>
     </Card>
   )
