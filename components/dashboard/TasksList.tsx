@@ -60,12 +60,12 @@ export function TasksList({ tasks }: TasksListProps) {
               return (
                 <div
                   key={task.id}
-                  className={`flex items-start gap-3 p-3 rounded-lg border ${
+                  className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:scale-105 hover:shadow-md transition-all duration-300 ${
                     overdue
-                      ? 'bg-red-50 border-red-200'
+                      ? 'bg-red-50 border-red-200 hover:bg-red-100 hover:border-red-400'
                       : today
-                        ? 'bg-yellow-50 border-yellow-200'
-                        : 'bg-gray-50 border-gray-200'
+                        ? 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100 hover:border-yellow-400'
+                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-400'
                   }`}
                 >
                   {overdue ? (

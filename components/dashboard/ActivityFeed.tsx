@@ -42,9 +42,9 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
             <p className="text-sm text-gray-500">No activities yet</p>
           ) : (
             activities.map((activity) => (
-              <div key={activity.id} className="flex items-start gap-3 pb-4 border-b border-gray-100 last:border-0">
+              <div key={activity.id} className="flex items-start gap-3 pb-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 p-2 rounded-lg cursor-pointer transition-all duration-300 hover:scale-102 hover:shadow-sm">
                 <div
-                  className={`mt-1 p-2 rounded-lg ${activityColors[activity.type]}`}
+                  className={`mt-1 p-2 rounded-lg transition-all duration-300 hover:scale-110 ${activityColors[activity.type]}`}
                 >
                   {activityIcons[activity.type]}
                 </div>

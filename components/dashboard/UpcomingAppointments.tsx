@@ -36,7 +36,7 @@ export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps
               </TableHeader>
               <TableBody>
                 {appointments.slice(0, 5).map((appointment) => (
-                  <TableRow key={appointment.id} className="border-gray-100 hover:bg-gray-50">
+                  <TableRow key={appointment.id} className="border-gray-100 hover:bg-gray-100 cursor-pointer transition-all duration-300 hover:scale-101">
                     <TableCell className="font-medium text-black">{appointment.entity?.name}</TableCell>
                     <TableCell className="text-gray-700">
                       {new Date(appointment.date_time).toLocaleString()}

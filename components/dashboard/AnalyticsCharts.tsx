@@ -30,7 +30,7 @@ interface AppointmentsChartProps {
 
 export function LeadsChart({ data }: LeadsChartProps) {
   return (
-    <Card className="border border-gray-200">
+    <Card className="border border-gray-200 hover:shadow-lg hover:scale-102 transition-all duration-300 cursor-pointer">
       <CardHeader>
         <CardTitle className="text-lg font-bold text-black">Leads Over Time</CardTitle>
       </CardHeader>
@@ -64,7 +64,7 @@ export function LeadsChart({ data }: LeadsChartProps) {
 
 export function AppointmentsChart({ data }: AppointmentsChartProps) {
   return (
-    <Card className="border border-gray-200">
+    <Card className="border border-gray-200 hover:shadow-lg hover:scale-102 transition-all duration-300 cursor-pointer">
       <CardHeader>
         <CardTitle className="text-lg font-bold text-black">Appointments This Week</CardTitle>
       </CardHeader>

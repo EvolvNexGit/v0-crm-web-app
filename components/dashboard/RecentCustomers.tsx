@@ -37,7 +37,7 @@ export function RecentCustomers({ customers }: RecentCustomersProps) {
               </TableHeader>
               <TableBody>
                 {customers.slice(0, 5).map((customer) => (
-                  <TableRow key={customer.id} className="border-gray-100 hover:bg-gray-50">
+                  <TableRow key={customer.id} className="border-gray-100 hover:bg-gray-100 cursor-pointer transition-all duration-300 hover:scale-101">
                     <TableCell className="font-mono text-sm font-semibold text-black">
                       {customer.entity_code}
                     </TableCell>

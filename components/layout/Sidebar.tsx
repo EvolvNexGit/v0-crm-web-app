@@ -70,9 +70,9 @@ export function Sidebar({ userEmail, tenantName }: SidebarProps) {
             <Link key={item.name} href={item.href}>
               <Button
                 variant="ghost"
-                className={`w-full justify-start gap-3 rounded-lg transition ${
+                className={`w-full justify-start gap-3 rounded-lg transition hover:scale-105 duration-300 ${
                   isActive
-                    ? 'bg-red-50 text-red-600 font-medium border-l-4 border-red-600'
+                    ? 'bg-red-50 text-red-600 font-medium border-l-4 border-red-600 hover:bg-red-100'
                     : 'text-gray-600 hover:bg-gray-100 hover:text-black'
                 }`}
               >
@@ -103,7 +103,7 @@ export function Sidebar({ userEmail, tenantName }: SidebarProps) {
 
         <Button
           variant="outline"
-          className="w-full justify-start gap-2 rounded-lg"
+          className="w-full justify-start gap-2 rounded-lg hover:scale-105 hover:bg-red-50 hover:text-red-600 hover:border-red-600 transition-all duration-300"
           onClick={handleLogout}
           disabled={loading}
         >

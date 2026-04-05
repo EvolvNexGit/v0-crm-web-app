@@ -108,14 +108,14 @@ export default async function DashboardPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="text-gray-600 hover:text-black hover:bg-gray-100"
+              className="text-gray-600 hover:text-black hover:bg-gray-100 hover:scale-110 transition-all duration-300 active:scale-95"
             >
               <Bell className="h-5 w-5" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="text-gray-600 hover:text-black hover:bg-gray-100"
+              className="text-gray-600 hover:text-black hover:bg-gray-100 hover:scale-110 transition-all duration-300 active:scale-95"
             >
               <Settings className="h-5 w-5" />
             </Button>

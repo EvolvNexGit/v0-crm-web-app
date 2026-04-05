@@ -23,10 +23,10 @@ export function KPICard({
   const trendBgColor = isPositive ? 'bg-green-50' : 'bg-red-50'
 
   return (
-    <Card className="border border-gray-200 bg-white hover:shadow-lg transition-shadow">
+    <Card className="border border-gray-200 bg-white hover:shadow-2xl hover:scale-105 hover:border-black transition-all duration-300 cursor-pointer">
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
         <CardTitle className="text-sm font-medium text-gray-700">{title}</CardTitle>
-        <div className="text-gray-400">{icon}</div>
+        <div className="text-gray-400 group-hover:text-black transition-colors duration-300">{icon}</div>
       </CardHeader>
       <CardContent className="space-y-2">
         <div className="text-3xl font-bold text-black">{value}</div>
