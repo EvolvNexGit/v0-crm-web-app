@@ -16,50 +16,59 @@ interface UpcomingAppointmentsProps {
 
 export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps) {
   return (
-    <Card>
+    <Card className="border border-gray-200">
       <CardHeader>
-        <CardTitle>Upcoming Appointments</CardTitle>
+        <CardTitle className="text-lg font-bold text-black">Upcoming Appointments</CardTitle>
       </CardHeader>
       <CardContent>
         {appointments.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">No appointments scheduled</p>
+          <p className="text-sm text-gray-500 py-4">No appointments scheduled</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Customer</TableHead>
-                <TableHead>Date & Time</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Notes</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {appointments.slice(0, 5).map((appointment) => (
-                <TableRow key={appointment.id}>
-                  <TableCell className="font-medium">{appointment.entity?.name}</TableCell>
-                  <TableCell>
-                    {new Date(appointment.date_time).toLocaleString()}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        appointment.status === 'Completed'
-                          ? 'default'
-                          : appointment.status === 'Cancelled'
-                            ? 'destructive'
-                            : 'secondary'
-                      }
-                    >
-                      {appointment.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {appointment.notes ? appointment.notes.substring(0, 50) : '-'}
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-gray-200 hover:bg-transparent">
+                  <TableHead className="text-gray-700 font-semibold">Customer</TableHead>
+                  <TableHead className="text-gray-700 font-semibold">Date & Time</TableHead>
+                  <TableHead className="text-gray-700 font-semibold">Status</TableHead>
+                  <TableHead className="text-gray-700 font-semibold">Notes</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {appointments.slice(0, 5).map((appointment) => (
+                  <TableRow key={appointment.id} className="border-gray-100 hover:bg-gray-50">
+                    <TableCell className="font-medium text-black">{appointment.entity?.name}</TableCell>
+                    <TableCell className="text-gray-700">
+                      {new Date(appointment.date_time).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          appointment.status === 'Completed'
+                            ? 'default'
+                            : appointment.status === 'Cancelled'
+                              ? 'destructive'
+                              : 'secondary'
+                        }
+                        className={
+                          appointment.status === 'Completed'
+                            ? 'bg-green-100 text-green-700'
+                            : appointment.status === 'Cancelled'
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-blue-100 text-blue-700'
+                        }
+                      >
+                        {appointment.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-600">
+                      {appointment.notes ? appointment.notes.substring(0, 50) : '-'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </CardContent>
     </Card>

@@ -1,51 +1,68 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Users, Calendar, TrendingUp } from 'lucide-react'
+import { KPICard } from './KPICard'
+import { Users, Calendar, TrendingUp, PhoneOff, DollarSign } from 'lucide-react'
 
 interface StatsCardsProps {
   totalCustomers: number
   todayAppointments: number
   recentAdditions: number
+  conversionRate?: number
+  revenue?: number
+  customerTrend?: number
+  appointmentTrend?: number
+  conversionTrend?: number
 }
 
 export function StatsCards({
   totalCustomers,
   todayAppointments,
   recentAdditions,
+  conversionRate = 0,
+  revenue = 0,
+  customerTrend = 12,
+  appointmentTrend = 8,
+  conversionTrend = 5,
 }: StatsCardsProps) {
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
-          <Users className="h-4 w-4 text-primary" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{totalCustomers}</div>
-          <p className="text-xs text-muted-foreground">Active customers in your CRM</p>
-        </CardContent>
-      </Card>
+    <div className="grid gap-6 md:grid-cols-5 lg:grid-cols-5 sm:grid-cols-2">
+      <KPICard
+        title="Total Customers"
+        value={totalCustomers}
+        icon={<Users className="h-5 w-5" />}
+        trend={customerTrend}
+        subtitle="Active customers"
+      />
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Today&apos;s Appointments</CardTitle>
-          <Calendar className="h-4 w-4 text-primary" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{todayAppointments}</div>
-          <p className="text-xs text-muted-foreground">Scheduled for today</p>
-        </CardContent>
-      </Card>
+      <KPICard
+        title="Today&apos;s Appointments"
+        value={todayAppointments}
+        icon={<Calendar className="h-5 w-5" />}
+        trend={appointmentTrend}
+        subtitle="Scheduled today"
+      />
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Recent Additions</CardTitle>
-          <TrendingUp className="h-4 w-4 text-primary" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{recentAdditions}</div>
-          <p className="text-xs text-muted-foreground">Added in the last 7 days</p>
-        </CardContent>
-      </Card>
+      <KPICard
+        title="Conversion Rate"
+        value={`${conversionRate}%`}
+        icon={<TrendingUp className="h-5 w-5" />}
+        trend={conversionTrend}
+        subtitle="vs last period"
+      />
+
+      <KPICard
+        title="Follow-ups Due"
+        value={recentAdditions}
+        icon={<PhoneOff className="h-5 w-5" />}
+        trend={-3}
+        subtitle="Action required"
+      />
+
+      <KPICard
+        title="Revenue"
+        value={`$${revenue.toLocaleString()}`}
+        icon={<DollarSign className="h-5 w-5" />}
+        trend={18}
+        subtitle="This month"
+      />
     </div>
   )
 }

@@ -72,7 +72,7 @@ export function Sidebar({ userEmail, tenantName }: SidebarProps) {
                 variant="ghost"
                 className={`w-full justify-start gap-3 rounded-lg transition ${
                   isActive
-                    ? 'bg-gray-100 text-black font-medium'
+                    ? 'bg-red-50 text-red-600 font-medium border-l-4 border-red-600'
                     : 'text-gray-600 hover:bg-gray-100 hover:text-black'
                 }`}
               >
