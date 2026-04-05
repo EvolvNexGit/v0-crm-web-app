@@ -1,12 +1,11 @@
 import { KPICard } from './KPICard'
-import { Users, Calendar, TrendingUp, PhoneOff, DollarSign } from 'lucide-react'
+import { Users, Calendar, TrendingUp, PhoneOff } from 'lucide-react'
 
 interface StatsCardsProps {
   totalCustomers: number
   todayAppointments: number
   recentAdditions: number
   conversionRate?: number
-  revenue?: number
   customerTrend?: number
   appointmentTrend?: number
   conversionTrend?: number
@@ -17,13 +16,12 @@ export function StatsCards({
   todayAppointments,
   recentAdditions,
   conversionRate = 0,
-  revenue = 0,
   customerTrend = 12,
   appointmentTrend = 8,
   conversionTrend = 5,
 }: StatsCardsProps) {
   return (
-    <div className="grid gap-6 md:grid-cols-5 lg:grid-cols-5 sm:grid-cols-2">
+    <div className="grid gap-6 md:grid-cols-4 lg:grid-cols-4 sm:grid-cols-2">
       <KPICard
         title="Total Customers"
         value={totalCustomers}
@@ -54,14 +52,6 @@ export function StatsCards({
         icon={<PhoneOff className="h-5 w-5" />}
         trend={-3}
         subtitle="Action required"
-      />
-
-      <KPICard
-        title="Revenue"
-        value={`$${revenue.toLocaleString()}`}
-        icon={<DollarSign className="h-5 w-5" />}
-        trend={18}
-        subtitle="This month"
       />
     </div>
   )

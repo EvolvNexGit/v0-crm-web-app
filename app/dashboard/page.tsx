@@ -99,32 +99,35 @@ export default async function DashboardPage() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
-        <div className="px-8 py-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-black">Dashboard</h1>
-            <p className="text-gray-600 mt-2">Welcome back to your CRM</p>
+        <div className="px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-black">EvolvNex</h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">CRM Platform</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex-1 text-center">
+            <h2 className="text-xl sm:text-2xl font-semibold text-black">Dashboard</h2>
+          </div>
+          <div className="flex items-center gap-3 sm:gap-4">
             <Button
               variant="ghost"
               size="icon"
               className="text-gray-600 hover:text-black hover:bg-gray-100 hover:scale-110 transition-all duration-300 active:scale-95"
             >
-              <Bell className="h-5 w-5" />
+              <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               className="text-gray-600 hover:text-black hover:bg-gray-100 hover:scale-110 transition-all duration-300 active:scale-95"
             >
-              <Settings className="h-5 w-5" />
+              <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="p-8 space-y-8">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-8">
         {/* Quick Actions */}
         <div>
           <QuickActions />
@@ -137,7 +140,6 @@ export default async function DashboardPage() {
             todayAppointments={stats.todayAppointments}
             recentAdditions={stats.recentAdditions}
             conversionRate={24.5}
-            revenue={125000}
             customerTrend={12}
             appointmentTrend={8}
             conversionTrend={5}
