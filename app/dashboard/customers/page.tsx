@@ -1,13 +1,11 @@
-import { getEntities } from '@/lib/supabase/queries'
+import { getCustomers } from '@/lib/supabase/queries'
 import { CustomersPageClient } from './page-client'
 
 export const metadata = {
-  title: 'Customers - EvolvNex CRM',
-  description: 'Manage your customers',
+  title: 'Customers - EvolvNex',
 }
 
 export default async function CustomersPage() {
-  const customers = await getEntities()
-
+  const customers = await getCustomers()
   return <CustomersPageClient initialCustomers={customers} />
 }

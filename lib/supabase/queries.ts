@@ -1,228 +1,181 @@
 import { createClient } from './server'
-import type { Entity, Appointment, User } from './types'
+import type { Client, Appointment, AppointmentWithClient, Task } from './types'
 
-/**
- * Get the current user's session and tenant information
- */
 export async function getCurrentUser() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    return null
-  }
 
-  // Get user record from database to get tenant_id
-  const { data: userData, error } = await supabase
+  if (!user) return null
+
+  const { data: userData } = await supabase
     .from('users')
     .select('*')
     .eq('id', user.id)
     .single()
 
-  if (error) {
-    console.error('Error fetching user:', error)
-    return null
+  if (userData?.tenant_id) {
+    return { ...user, tenant_id: userData.tenant_id }
   }
-
-  return {
-    ...user,
-    tenant_id: userData?.tenant_id,
-  }
+  return null
 }
 
-/**
- * Get all entities (customers) for the current tenant
- */
-export async function getEntities(search?: string) {
+export async function getAppointments() {
   const supabase = await createClient()
   const currentUser = await getCurrentUser()
+  if (!currentUser?.tenant_id) return []
 
-  if (!currentUser?.tenant_id) {
-    return []
-  }
-
-  let query = supabase
-    .from('entities')
-    .select('*')
+  const { data } = await supabase
+    .from('appointments')
+    .select('*, client:clients(*)')
     .eq('tenant_id', currentUser.tenant_id)
-    .order('created_at', { ascending: false })
+    .order('date', { ascending: false })
+    .order('start_time', { ascending: false })
 
-  if (search) {
-    query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`)
-  }
-
-  const { data, error } = await query
-
-  if (error) {
-    console.error('Error fetching entities:', error)
-    return []
-  }
-
-  return data as Entity[]
+  return (data || []) as AppointmentWithClient[]
 }
 
-/**
- * Get a single entity by ID
- */
-export async function getEntity(id: string) {
+export async function createAppointment(appointment: Partial<Appointment>) {
   const supabase = await createClient()
   const currentUser = await getCurrentUser()
-
-  if (!currentUser?.tenant_id) {
-    return null
-  }
+  if (!currentUser?.tenant_id) throw new Error('Unauthorized')
 
   const { data, error } = await supabase
-    .from('entities')
-    .select('*')
-    .eq('id', id)
-    .eq('tenant_id', currentUser.tenant_id)
+    .from('appointments')
+    .insert({ ...appointment, tenant_id: currentUser.tenant_id })
+    .select()
     .single()
 
-  if (error) {
-    console.error('Error fetching entity:', error)
-    return null
-  }
-
-  return data as Entity
+  if (error) throw error
+  return data as Appointment
 }
 
-/**
- * Create a new entity (customer)
- */
-export async function createEntity(entity: Omit<Entity, 'id' | 'created_at' | 'updated_at'>) {
+export async function updateAppointmentStatus(id: string, status: Appointment['status']) {
   const supabase = await createClient()
-  const currentUser = await getCurrentUser()
+  const { error } = await supabase
+    .from('appointments')
+    .update({
+      status,
+      ...(status === 'booked' ? { verified_at: new Date().toISOString() } : {}),
+    })
+    .eq('id', id)
 
-  if (!currentUser?.tenant_id) {
-    throw new Error('User not authenticated')
-  }
-
-  const { data, error } = await supabase
-    .from('entities')
-    .insert([
-      {
-        ...entity,
-        tenant_id: currentUser.tenant_id,
-      },
-    ])
-    .select()
-
-  if (error) {
-    console.error('Error creating entity:', error)
-    throw error
-  }
-
-  return data[0] as Entity
+  if (error) throw error
 }
 
-/**
- * Get all appointments for the current tenant
- */
-export async function getAppointments(limit?: number) {
+export async function deleteAppointment(id: string) {
+  const supabase = await createClient()
+  const { error } = await supabase.from('appointments').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function getCustomers() {
   const supabase = await createClient()
   const currentUser = await getCurrentUser()
+  if (!currentUser?.tenant_id) return []
 
-  if (!currentUser?.tenant_id) {
-    return []
-  }
-
-  let query = supabase
+  const { data } = await supabase
     .from('appointments')
     .select(`
-      *,
-      entity:entities(*)
+      id, name, phone, email, created_at
     `)
     .eq('tenant_id', currentUser.tenant_id)
-    .order('date_time', { ascending: true })
+    .not('name', 'is', null)
 
-  if (limit) {
-    query = query.limit(limit)
-  }
+  if (!data) return []
 
-  const { data, error } = await query
+  const seen = new Set()
+  const unique = data.filter((appt) => {
+    if (!appt.name) return false
+    const key = appt.name.toLowerCase()
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 
-  if (error) {
-    console.error('Error fetching appointments:', error)
-    return []
-  }
-
-  return data as (Appointment & { entity: Entity })[]
+  return unique as Pick<Appointment, 'id' | 'name' | 'phone' | 'email' | 'created_at'>[]
 }
 
-/**
- * Create a new appointment
- */
-export async function createAppointment(appointment: Omit<Appointment, 'id' | 'created_at' | 'updated_at'>) {
-  const supabase = await createClient()
-  const currentUser = await getCurrentUser()
-
-  if (!currentUser?.tenant_id) {
-    throw new Error('User not authenticated')
-  }
-
-  const { data, error } = await supabase
-    .from('appointments')
-    .insert([
-      {
-        ...appointment,
-        tenant_id: currentUser.tenant_id,
-      },
-    ])
-    .select()
-
-  if (error) {
-    console.error('Error creating appointment:', error)
-    throw error
-  }
-
-  return data[0] as Appointment
-}
-
-/**
- * Get dashboard statistics for the current tenant
- */
 export async function getDashboardStats() {
   const supabase = await createClient()
   const currentUser = await getCurrentUser()
+  if (!currentUser?.tenant_id) return { total: 0, pending: 0, confirmed: 0, thisMonth: 0 }
 
-  if (!currentUser?.tenant_id) {
-    return {
-      totalCustomers: 0,
-      todayAppointments: 0,
-      recentAdditions: 0,
-    }
-  }
+  const now = new Date()
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+  const today = now.toISOString().split('T')[0]
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const todayStr = today.toISOString().split('T')[0]
-
-  const [
-    { count: customersCount },
-    { count: appointmentsCount },
-    { count: recentCount },
-  ] = await Promise.all([
-    supabase
-      .from('entities')
-      .select('*', { count: 'exact', head: true })
-      .eq('tenant_id', currentUser.tenant_id),
-    supabase
-      .from('appointments')
-      .select('*', { count: 'exact', head: true })
-      .eq('tenant_id', currentUser.tenant_id)
-      .gte('date_time', todayStr)
-      .lt('date_time', new Date(today.getTime() + 86400000).toISOString()),
-    supabase
-      .from('entities')
-      .select('*', { count: 'exact', head: true })
-      .eq('tenant_id', currentUser.tenant_id)
-      .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
-  ])
+  const [{ count: total }, { count: pending }, { count: confirmed }, { count: thisMonth }] =
+    await Promise.all([
+      supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('tenant_id', currentUser.tenant_id),
+      supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('tenant_id', currentUser.tenant_id).eq('status', 'tentative'),
+      supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('tenant_id', currentUser.tenant_id).eq('status', 'booked').eq('date', today),
+      supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('tenant_id', currentUser.tenant_id).gte('date', startOfMonth),
+    ])
 
   return {
-    totalCustomers: customersCount || 0,
-    todayAppointments: appointmentsCount || 0,
-    recentAdditions: recentCount || 0,
+    total: total || 0,
+    pending: pending || 0,
+    confirmed: confirmed || 0,
+    thisMonth: thisMonth || 0,
   }
+}
+
+export async function getUpcomingAppointments(limit = 5) {
+  const supabase = await createClient()
+  const currentUser = await getCurrentUser()
+  if (!currentUser?.tenant_id) return []
+
+  const today = new Date().toISOString().split('T')[0]
+
+  const { data } = await supabase
+    .from('appointments')
+    .select('*, client:clients(*)')
+    .eq('tenant_id', currentUser.tenant_id)
+    .in('status', ['tentative', 'booked'])
+    .gte('date', today)
+    .order('date', { ascending: true })
+    .order('start_time', { ascending: true })
+    .limit(limit)
+
+  return (data || []) as AppointmentWithClient[]
+}
+
+export async function getTasks() {
+  const supabase = await createClient()
+  const currentUser = await getCurrentUser()
+  if (!currentUser?.tenant_id) return []
+
+  const { data } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('tenant_id', currentUser.tenant_id)
+    .eq('is_completed', false)
+    .order('created_at', { ascending: false })
+
+  return (data || []) as Task[]
+}
+
+export async function createTask(title: string) {
+  const supabase = await createClient()
+  const currentUser = await getCurrentUser()
+  if (!currentUser?.tenant_id) throw new Error('Unauthorized')
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .insert({ title, tenant_id: currentUser.tenant_id })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as Task
+}
+
+export async function completeTask(id: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('tasks')
+    .update({ is_completed: true })
+    .eq('id', id)
+
+  if (error) throw error
 }

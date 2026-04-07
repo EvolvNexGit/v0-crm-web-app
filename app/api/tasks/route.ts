@@ -10,11 +10,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+    const { title } = body
+
+    if (!title?.trim()) {
+      return NextResponse.json({ message: 'Title required' }, { status: 400 })
+    }
+
     const supabase = await createClient()
 
     const { data, error } = await supabase
-      .from('appointments')
-      .insert({ ...body, tenant_id: currentUser.tenant_id })
+      .from('tasks')
+      .insert({ title: title.trim(), tenant_id: currentUser.tenant_id })
       .select()
       .single()
 
@@ -22,10 +28,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
-    console.error('Error creating appointment:', error)
-    return NextResponse.json(
-      { message: 'Failed to create appointment' },
-      { status: 500 }
-    )
+    console.error('Error creating task:', error)
+    return NextResponse.json({ message: 'Failed to create task' }, { status: 500 })
   }
 }

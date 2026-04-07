@@ -1,0 +1,266 @@
+🚀 STEP 0: EXTENSIONS (run once)
+-- for uuid generation
+create extension if not exists "pgcrypto";
+
+👤 1. PEOPLE
+create table people (
+  id uuid primary key default gen_random_uuid(),
+
+  name text not null,
+  phone text,
+  whatsapp_number text,
+  email text,
+
+  type text check (
+    type in ('client_contact', 'employee', 'external_referral')
+  ),
+
+  created_at timestamp default now()
+);
+
+🏢 2. CLIENTS
+create table clients (
+  id uuid primary key default gen_random_uuid(),
+
+  name text not null,
+  project_name text,
+
+  primary_contact_id uuid references people(id),
+
+  onboarding_date date,
+  next_service_date date,
+
+  package text,
+  package_price numeric,
+  discount numeric,
+  amount_charged numeric,
+
+  base_payment_status text,
+  payment_date date,
+
+  description text,
+  website_link text,
+  handover_date date,
+
+  is_active boolean default true,
+
+  created_at timestamp default now()
+);
+
+👨‍💼 3. EMPLOYEES
+create table employees (
+  id uuid primary key default gen_random_uuid(),
+
+  person_id uuid references people(id),
+
+  role text,
+  joining_date date,
+
+  created_at timestamp default now()
+);
+
+🌐 4. WEBSITES
+create table websites (
+  id uuid primary key default gen_random_uuid(),
+
+  client_id uuid references clients(id),
+
+  code_repo text,
+  repo_link text,
+
+  domain_type text,
+  domain text,
+
+  hosting text,
+  hosting_account text,
+  hosting_account_link text,
+
+  website_link text,
+  generation_tools text,
+
+  created_at timestamp default now()
+);
+
+💳 5. SUBSCRIPTIONS
+create table subscriptions (
+  id uuid primary key default gen_random_uuid(),
+
+  client_id uuid references clients(id),
+
+  plan text,
+  amount numeric,
+
+  discount numeric,
+  discount_reason text,
+  final_amount numeric,
+
+  tenure text,
+
+  start_date date,
+  end_date date,
+
+  status text check (
+    status in ('active', 'expired', 'cancelled')
+  ),
+
+  due_date date,
+  paid_on date,
+
+  created_at timestamp default now()
+);
+
+🔗 6. REFERRALS
+create table referrals (
+  id uuid primary key default gen_random_uuid(),
+
+  client_id uuid references clients(id),
+  referred_by_person_id uuid references people(id),
+
+  notes text,
+
+  created_at timestamp default now()
+);
+
+📥 7. LEADS
+create table leads (
+  id uuid primary key default gen_random_uuid(),
+
+  client_id uuid references clients(id),
+
+  name text,
+  phone text,
+  email text,
+
+  source text,
+  status text,
+  remark text,
+
+  assigned_to uuid references employees(id),
+
+  created_at timestamp default now()
+);
+
+📅 8. APPOINTMENTS
+create table appointments (
+  id uuid primary key default gen_random_uuid(),
+
+  client_id uuid references clients(id),
+
+  name text,
+  phone text,
+  email text,
+
+  service text,
+  location text,
+  staff_name text,
+
+  date date,
+  start_time time,
+  end_time time,
+
+  status text check (
+    status in ('tentative', 'booked', 'cancelled', 'completed')
+  ) default 'tentative',
+
+  remark text,
+  created_by text,
+
+  verified_at timestamp,
+  verified_by uuid references employees(id),
+
+  reminder_sent boolean default false,
+  reminder_sent_at timestamp,
+
+  created_at timestamp default now()
+);
+
+🔒 Prevent Double Booking
+alter table appointments
+add constraint unique_booking
+unique (client_id, date, start_time, staff_name);
+
+⚡ Speed Up Queries
+create index idx_appointments_lookup
+on appointments (client_id, date, staff_name);
+
+🧩 9. CUSTOM FIELDS
+create table custom_fields (
+  id uuid primary key default gen_random_uuid(),
+
+  client_id uuid references clients(id),
+
+  entity_type text check (
+    entity_type in ('lead', 'appointment')
+  ),
+
+  field_name text,
+  field_type text,
+
+  created_at timestamp default now()
+);
+
+🧩 10. CUSTOM FIELD VALUES
+create table custom_field_values (
+  id uuid primary key default gen_random_uuid(),
+
+  client_id uuid references clients(id),
+
+  field_id uuid references custom_fields(id),
+  entity_id uuid,
+
+  value text
+);
+
+🔒 STEP 2: ENABLE RLS (VERY IMPORTANT)
+
+Run for ALL tables:
+
+alter table people enable row level security;
+alter table clients enable row level security;
+alter table employees enable row level security;
+alter table websites enable row level security;
+alter table subscriptions enable row level security;
+alter table referrals enable row level security;
+alter table leads enable row level security;
+alter table appointments enable row level security;
+alter table custom_fields enable row level security;
+alter table custom_field_values enable row level security;
+
+📋 11. TASKS (Reminders/To-do)
+create table tasks (
+  id uuid primary key default gen_random_uuid(),
+
+  tenant_id uuid not null,
+
+  title text not null,
+
+  is_completed boolean default false,
+
+  created_at timestamp default now()
+);
+
+alter table tasks enable row level security;
+
+create policy "tenant access on tasks"
+on tasks
+for all
+using (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
+with check (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
+
+create policy "client access on leads"
+on leads
+for all
+using (client_id = (auth.jwt() ->> 'client_id')::uuid)
+with check (client_id = (auth.jwt() ->> 'client_id')::uuid);
+
+create policy "client access on appointments"
+on appointments
+for all
+using (client_id = (auth.jwt() ->> 'client_id')::uuid)
+with check (client_id = (auth.jwt() ->> 'client_id')::uuid);
+
+create policy "internal only - people"
+on people
+for all
+using (auth.role() = 'service_admin')
+with check (auth.role() = 'service_admin');
