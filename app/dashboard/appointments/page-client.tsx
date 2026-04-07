@@ -59,13 +59,14 @@ export function AppointmentsPageClient({ initialAppointments }: AppointmentsPage
     setLoadingId(id)
     try {
       const res = await fetch(`/api/appointments/${id}/confirm`, { method: 'POST' })
-      if (!res.ok) throw new Error('Failed')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Failed')
       setAppointments((prev) =>
         prev.map((a) => (a.id === id ? { ...a, status: 'booked' as const } : a))
       )
       toast.success('Appointment confirmed')
-    } catch {
-      toast.error('Failed to confirm')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to confirm')
     } finally {
       setLoadingId(null)
     }
@@ -75,11 +76,12 @@ export function AppointmentsPageClient({ initialAppointments }: AppointmentsPage
     setLoadingId(id)
     try {
       const res = await fetch(`/api/appointments/${id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Failed')
       setAppointments((prev) => prev.filter((a) => a.id !== id))
       toast.success('Appointment deleted')
-    } catch {
-      toast.error('Failed to delete')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete')
     } finally {
       setLoadingId(null)
       setDeleteId(null)
@@ -95,15 +97,15 @@ export function AppointmentsPageClient({ initialAppointments }: AppointmentsPage
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, status: 'tentative' }),
       })
-      if (!res.ok) throw new Error('Failed')
-      const newAppt = await res.json()
-      setAppointments((prev) => [{ ...newAppt, client: undefined }, ...prev])
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Failed')
+      setAppointments((prev) => [{ ...data, client: undefined }, ...prev])
       setAddOpen(false)
       setForm({ name: '', phone: '', email: '', service: '', location: '', staff_name: '', date: '', start_time: '', end_time: '', remark: '' })
       toast.success('Appointment added')
       router.refresh()
-    } catch {
-      toast.error('Failed to add appointment')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to add appointment')
     } finally {
       setSubmitting(false)
     }

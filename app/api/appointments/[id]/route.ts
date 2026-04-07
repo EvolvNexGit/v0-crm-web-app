@@ -14,13 +14,16 @@ export async function DELETE(
       .delete()
       .eq('id', id)
 
-    if (error) throw error
+    if (error) {
+      console.error('Error deleting appointment:', JSON.stringify(error))
+      return NextResponse.json({ message: error.message }, { status: 500 })
+    }
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting appointment:', error)
     return NextResponse.json(
-      { message: 'Failed to delete appointment' },
+      { message: error.message || 'Failed to delete appointment' },
       { status: 500 }
     )
   }
