@@ -239,26 +239,33 @@ create table tasks (
   created_at timestamp default now()
 );
 
+-- Add tenant_id to appointments BEFORE creating policies that reference it
+alter table appointments add column if not exists tenant_id uuid not null default auth.uid();
+
 alter table tasks enable row level security;
 
+drop policy if exists "tenant access on tasks" on tasks;
 create policy "tenant access on tasks"
 on tasks
 for all
-using (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
-with check (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
+using (tenant_id = auth.uid())
+with check (tenant_id = auth.uid());
 
+drop policy if exists "client access on leads" on leads;
 create policy "client access on leads"
 on leads
 for all
-using (client_id = (auth.jwt() ->> 'client_id')::uuid)
-with check (client_id = (auth.jwt() ->> 'client_id')::uuid);
+using (client_id = auth.uid())
+with check (client_id = auth.uid());
 
+drop policy if exists "client access on appointments" on appointments;
 create policy "client access on appointments"
 on appointments
 for all
-using (client_id = (auth.jwt() ->> 'client_id')::uuid)
-with check (client_id = (auth.jwt() ->> 'client_id')::uuid);
+using (tenant_id = auth.uid())
+with check (tenant_id = auth.uid());
 
+drop policy if exists "internal only - people" on people;
 create policy "internal only - people"
 on people
 for all
