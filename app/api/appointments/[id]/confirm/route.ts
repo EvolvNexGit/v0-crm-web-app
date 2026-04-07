@@ -17,13 +17,16 @@ export async function POST(
       })
       .eq('id', id)
 
-    if (error) throw error
+    if (error) {
+      console.error('Error confirming appointment:', JSON.stringify(error))
+      return NextResponse.json({ message: error.message }, { status: 500 })
+    }
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error confirming appointment:', error)
     return NextResponse.json(
-      { message: 'Failed to confirm appointment' },
+      { message: error.message || 'Failed to confirm appointment' },
       { status: 500 }
     )
   }

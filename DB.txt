@@ -242,7 +242,7 @@ create table tasks (
 -- Add tenant_id to appointments BEFORE creating policies that reference it
 alter table appointments add column if not exists tenant_id uuid not null default auth.uid();
 
-alter table tasks enable row level security;
+alter table tasks disable row level security;
 
 drop policy if exists "tenant access on tasks" on tasks;
 create policy "tenant access on tasks"
