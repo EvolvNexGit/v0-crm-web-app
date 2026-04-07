@@ -24,11 +24,14 @@ export async function POST(request: NextRequest) {
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Supabase error:', JSON.stringify(error))
+      return NextResponse.json({ message: error.message }, { status: 500 })
+    }
 
     return NextResponse.json(data, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating task:', error)
-    return NextResponse.json({ message: 'Failed to create task' }, { status: 500 })
+    return NextResponse.json({ message: error.message || 'Failed to create task' }, { status: 500 })
   }
 }
