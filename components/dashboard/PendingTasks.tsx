@@ -10,11 +10,12 @@ import { Spinner } from '@/components/ui/spinner'
 import type { Task } from '@/lib/supabase/types'
 
 interface PendingTasksProps {
-  initialTasks: Task[]
+  tasks: Task[]
+  onTaskDone?: (id: string) => void
+  onTaskAdded?: () => void
 }
 
-export function PendingTasks({ initialTasks }: PendingTasksProps) {
-  const [tasks, setTasks] = useState(initialTasks)
+export function PendingTasks({ tasks, onTaskDone, onTaskAdded }: PendingTasksProps) {
   const [title, setTitle] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [loadingId, setLoadingId] = useState<string | null>(null)
@@ -25,7 +26,7 @@ export function PendingTasks({ initialTasks }: PendingTasksProps) {
       const res = await fetch(`/api/tasks/${id}/done`, { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed')
-      setTasks((prev) => prev.filter((t) => t.id !== id))
+      onTaskDone?.(id)
       toast.success('Task completed')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to complete task')
@@ -47,8 +48,8 @@ export function PendingTasks({ initialTasks }: PendingTasksProps) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed')
-      setTasks((prev) => [data, ...prev])
       setTitle('')
+      onTaskAdded?.()
       toast.success('Task added')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to add task')

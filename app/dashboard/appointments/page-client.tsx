@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Table,
@@ -20,17 +20,14 @@ import { toast } from 'sonner'
 import { Spinner } from '@/components/ui/spinner'
 import type { AppointmentWithClient } from '@/lib/supabase/types'
 
-interface AppointmentsPageClientProps {
-  initialAppointments: AppointmentWithClient[]
-}
-
-export function AppointmentsPageClient({ initialAppointments }: AppointmentsPageClientProps) {
+export function AppointmentsPageClient() {
   const router = useRouter()
   const [search, setSearch] = useState('')
-  const [appointments, setAppointments] = useState(initialAppointments)
+  const [appointments, setAppointments] = useState<AppointmentWithClient[]>([])
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [addOpen, setAddOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -44,6 +41,23 @@ export function AppointmentsPageClient({ initialAppointments }: AppointmentsPage
     remark: '',
   })
   const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    fetchAppointments()
+  }, [])
+
+  async function fetchAppointments() {
+    try {
+      const res = await fetch('/api/appointments')
+      if (!res.ok) throw new Error('Failed to fetch')
+      const data = await res.json()
+      setAppointments(data || [])
+    } catch {
+      toast.error('Failed to load appointments')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filtered = appointments.filter((a) => {
     const q = search.toLowerCase()
@@ -99,11 +113,10 @@ export function AppointmentsPageClient({ initialAppointments }: AppointmentsPage
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed')
-      setAppointments((prev) => [{ ...data, client: undefined }, ...prev])
       setAddOpen(false)
       setForm({ name: '', phone: '', email: '', service: '', location: '', staff_name: '', date: '', start_time: '', end_time: '', remark: '' })
       toast.success('Appointment added')
-      window.location.reload()
+      fetchAppointments()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to add appointment')
     } finally {
@@ -152,74 +165,79 @@ export function AppointmentsPageClient({ initialAppointments }: AppointmentsPage
         </div>
 
         <div className="rounded-lg border bg-white">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50">
-                <TableHead className="font-semibold">Date</TableHead>
-                <TableHead className="font-semibold">Time</TableHead>
-                <TableHead className="font-semibold">Name</TableHead>
-                <TableHead className="font-semibold">Phone</TableHead>
-                <TableHead className="font-semibold">Service</TableHead>
-                <TableHead className="font-semibold">Staff</TableHead>
-                <TableHead className="font-semibold">Status</TableHead>
-                <TableHead className="font-semibold">Remark</TableHead>
-                <TableHead className="font-semibold">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="text-center py-12 text-gray-500">
-                    <Calendar className="h-10 w-10 mx-auto mb-3 text-gray-300" />
-                    {appointments.length === 0
-                      ? 'No appointments yet'
-                      : 'No appointments match your search'}
-                  </TableCell>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Spinner className="h-6 w-6" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50">
+                  <TableHead className="font-semibold">Date</TableHead>
+                  <TableHead className="font-semibold">Time</TableHead>
+                  <TableHead className="font-semibold">Name</TableHead>
+                  <TableHead className="font-semibold">Phone</TableHead>
+                  <TableHead className="font-semibold">Service</TableHead>
+                  <TableHead className="font-semibold">Staff</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold">Remark</TableHead>
+                  <TableHead className="font-semibold">Actions</TableHead>
                 </TableRow>
-              ) : (
-                filtered.map((appt) => (
-                  <TableRow key={appt.id} className="hover:bg-gray-50">
-                    <TableCell className="text-sm">{appt.date || '-'}</TableCell>
-                    <TableCell className="text-sm">{appt.start_time || '-'}</TableCell>
-                    <TableCell className="font-medium">{appt.name || '-'}</TableCell>
-                    <TableCell className="text-sm">{appt.phone || '-'}</TableCell>
-                    <TableCell className="text-sm">{appt.service || '-'}</TableCell>
-                    <TableCell className="text-sm">{appt.staff_name || '-'}</TableCell>
-                    <TableCell>{statusBadge(appt.status)}</TableCell>
-                    <TableCell className="text-sm max-w-32 truncate">{appt.remark || '-'}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {appt.status === 'tentative' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="gap-1 text-green-600 border-green-200 hover:bg-green-50"
-                            onClick={() => handleConfirm(appt.id)}
-                            disabled={loadingId === appt.id}
-                          >
-                            {loadingId === appt.id ? <Spinner className="h-3 w-3" /> : <Check className="h-3 w-3" />}
-                            Confirm
-                          </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => setDeleteId(appt.id)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center py-12 text-gray-500">
+                      <Calendar className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+                      {appointments.length === 0
+                        ? 'No appointments yet'
+                        : 'No appointments match your search'}
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  filtered.map((appt) => (
+                    <TableRow key={appt.id} className="hover:bg-gray-50">
+                      <TableCell className="text-sm">{appt.date || '-'}</TableCell>
+                      <TableCell className="text-sm">{appt.start_time || '-'}</TableCell>
+                      <TableCell className="font-medium">{appt.name || '-'}</TableCell>
+                      <TableCell className="text-sm">{appt.phone || '-'}</TableCell>
+                      <TableCell className="text-sm">{appt.service || '-'}</TableCell>
+                      <TableCell className="text-sm">{appt.staff_name || '-'}</TableCell>
+                      <TableCell>{statusBadge(appt.status)}</TableCell>
+                      <TableCell className="text-sm max-w-32 truncate">{appt.remark || '-'}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {appt.status === 'tentative' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1 text-green-600 border-green-200 hover:bg-green-50"
+                              onClick={() => handleConfirm(appt.id)}
+                              disabled={loadingId === appt.id}
+                            >
+                              {loadingId === appt.id ? <Spinner className="h-3 w-3" /> : <Check className="h-3 w-3" />}
+                              Confirm
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => setDeleteId(appt.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </div>
       </div>
 
-      {/* Delete Confirm Dialog */}
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent>
           <DialogHeader>
@@ -240,7 +258,6 @@ export function AppointmentsPageClient({ initialAppointments }: AppointmentsPage
         </DialogContent>
       </Dialog>
 
-      {/* Add Appointment Dialog */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>

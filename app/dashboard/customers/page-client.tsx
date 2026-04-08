@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Table,
   TableBody,
@@ -10,18 +10,39 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { Search, User } from 'lucide-react'
-import type { Appointment } from '@/lib/supabase/types'
+import { Spinner } from '@/components/ui/spinner'
 
-interface CustomersPageClientProps {
-  initialCustomers: Pick<Appointment, 'id' | 'name' | 'phone' | 'email' | 'created_at'>[]
+interface Customer {
+  id: string
+  name: string | null
+  phone: string | null
+  email: string | null
+  created_at: string
 }
 
-export function CustomersPageClient({ initialCustomers }: CustomersPageClientProps) {
+export function CustomersPageClient() {
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
 
-  const filtered = initialCustomers.filter((c) => {
+  useEffect(() => {
+    fetchCustomers()
+  }, [])
+
+  async function fetchCustomers() {
+    try {
+      const res = await fetch('/api/customers')
+      if (res.ok) {
+        const data = await res.json()
+        setCustomers(data || [])
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filtered = customers.filter((c) => {
     const q = search.toLowerCase()
     return (
       c.name?.toLowerCase().includes(q) ||
@@ -36,7 +57,7 @@ export function CustomersPageClient({ initialCustomers }: CustomersPageClientPro
         <div className="px-6 py-4">
           <div>
             <h1 className="text-2xl font-bold text-black">Customers</h1>
-            <p className="text-sm text-gray-500">{initialCustomers.length} patients</p>
+            <p className="text-sm text-gray-500">{customers.length} patients</p>
           </div>
         </div>
       </div>
@@ -53,41 +74,47 @@ export function CustomersPageClient({ initialCustomers }: CustomersPageClientPro
         </div>
 
         <div className="rounded-lg border bg-white">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50">
-                <TableHead className="font-semibold">Name</TableHead>
-                <TableHead className="font-semibold">Phone</TableHead>
-                <TableHead className="font-semibold">Email</TableHead>
-                <TableHead className="font-semibold">Added</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-12 text-gray-500">
-                    <User className="h-10 w-10 mx-auto mb-3 text-gray-300" />
-                    {initialCustomers.length === 0
-                      ? 'No customers yet'
-                      : 'No customers match your search'}
-                  </TableCell>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Spinner className="h-6 w-6" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50">
+                  <TableHead className="font-semibold">Name</TableHead>
+                  <TableHead className="font-semibold">Phone</TableHead>
+                  <TableHead className="font-semibold">Email</TableHead>
+                  <TableHead className="font-semibold">Added</TableHead>
                 </TableRow>
-              ) : (
-                filtered.map((customer) => (
-                  <TableRow key={customer.id} className="hover:bg-gray-50">
-                    <TableCell className="font-medium">{customer.name || '-'}</TableCell>
-                    <TableCell>{customer.phone || '-'}</TableCell>
-                    <TableCell>{customer.email || '-'}</TableCell>
-                    <TableCell className="text-sm text-gray-500">
-                      {customer.created_at
-                        ? new Date(customer.created_at).toLocaleDateString()
-                        : '-'}
+              </TableHeader>
+              <TableBody>
+                {filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-12 text-gray-500">
+                      <User className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+                      {customers.length === 0
+                        ? 'No customers yet'
+                        : 'No customers match your search'}
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  filtered.map((customer) => (
+                    <TableRow key={customer.id} className="hover:bg-gray-50">
+                      <TableCell className="font-medium">{customer.name || '-'}</TableCell>
+                      <TableCell>{customer.phone || '-'}</TableCell>
+                      <TableCell>{customer.email || '-'}</TableCell>
+                      <TableCell className="text-sm text-gray-500">
+                        {customer.created_at
+                          ? new Date(customer.created_at).toLocaleDateString()
+                          : '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </div>
       </div>
     </div>
