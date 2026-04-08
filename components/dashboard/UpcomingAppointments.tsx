@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import {
   Table,
   TableBody,
@@ -10,7 +11,10 @@ import {
 } from '@/components/ui/table'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Calendar } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Calendar, Check } from 'lucide-react'
+import { toast } from 'sonner'
+import { Spinner } from '@/components/ui/spinner'
 import type { AppointmentWithClient } from '@/lib/supabase/types'
 
 interface UpcomingAppointmentsProps {
@@ -18,6 +22,23 @@ interface UpcomingAppointmentsProps {
 }
 
 export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps) {
+  const [loadingId, setLoadingId] = useState<string | null>(null)
+
+  async function handleConfirm(id: string) {
+    setLoadingId(id)
+    try {
+      const res = await fetch(`/api/appointments/${id}/confirm`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Failed')
+      toast.success('Appointment confirmed')
+      window.location.reload()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to confirm')
+    } finally {
+      setLoadingId(null)
+    }
+  }
+
   function statusBadge(status: string) {
     switch (status) {
       case 'tentative':
@@ -54,6 +75,7 @@ export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps
                   <TableHead className="text-gray-700 font-semibold">Name</TableHead>
                   <TableHead className="text-gray-700 font-semibold">Service</TableHead>
                   <TableHead className="text-gray-700 font-semibold">Status</TableHead>
+                  <TableHead className="text-gray-700 font-semibold">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -64,6 +86,20 @@ export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps
                     <TableCell className="font-medium text-black">{appointment.name || '-'}</TableCell>
                     <TableCell className="text-sm text-gray-700">{appointment.service || '-'}</TableCell>
                     <TableCell>{statusBadge(appointment.status)}</TableCell>
+                    <TableCell>
+                      {appointment.status === 'tentative' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1 text-green-600 border-green-200 hover:bg-green-50"
+                          onClick={() => handleConfirm(appointment.id)}
+                          disabled={loadingId === appointment.id}
+                        >
+                          {loadingId === appointment.id ? <Spinner className="h-3 w-3" /> : <Check className="h-3 w-3" />}
+                          Confirm
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -30,6 +30,7 @@ export default async function DashboardPage() {
             value={stats.pending}
             icon={<Clock className="h-5 w-5" />}
             subtitle="Awaiting confirmation"
+            href="/dashboard/appointments"
           />
           <KPICard
             title="Confirmed Today"

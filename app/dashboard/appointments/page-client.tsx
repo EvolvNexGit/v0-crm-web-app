@@ -103,7 +103,7 @@ export function AppointmentsPageClient({ initialAppointments }: AppointmentsPage
       setAddOpen(false)
       setForm({ name: '', phone: '', email: '', service: '', location: '', staff_name: '', date: '', start_time: '', end_time: '', remark: '' })
       toast.success('Appointment added')
-      router.refresh()
+      window.location.reload()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to add appointment')
     } finally {
