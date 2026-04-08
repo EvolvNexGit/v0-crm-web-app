@@ -19,6 +19,21 @@ export function PendingTasks({ initialTasks }: PendingTasksProps) {
   const [submitting, setSubmitting] = useState(false)
   const [loadingId, setLoadingId] = useState<string | null>(null)
 
+  async function handleDone(id: string) {
+    setLoadingId(id)
+    try {
+      const res = await fetch(`/api/tasks/${id}/done`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Failed')
+      setTasks((prev) => prev.filter((t) => t.id !== id))
+      toast.success('Task completed')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to complete task')
+    } finally {
+      setLoadingId(null)
+    }
+  }
+
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) return
@@ -30,29 +45,15 @@ export function PendingTasks({ initialTasks }: PendingTasksProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: title.trim() }),
       })
-      if (!res.ok) throw new Error('Failed')
-      const newTask = await res.json()
-      setTasks((prev) => [newTask, ...prev])
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Failed')
+      setTasks((prev) => [data, ...prev])
       setTitle('')
       toast.success('Task added')
-    } catch {
-      toast.error('Failed to add task')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to add task')
     } finally {
       setSubmitting(false)
-    }
-  }
-
-  async function handleDone(id: string) {
-    setLoadingId(id)
-    try {
-      const res = await fetch(`/api/tasks/${id}/done`, { method: 'POST' })
-      if (!res.ok) throw new Error('Failed')
-      setTasks((prev) => prev.filter((t) => t.id !== id))
-      toast.success('Task completed')
-    } catch {
-      toast.error('Failed to complete task')
-    } finally {
-      setLoadingId(null)
     }
   }
 
