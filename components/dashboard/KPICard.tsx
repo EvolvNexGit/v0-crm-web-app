@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 
@@ -8,6 +9,7 @@ interface KPICardProps {
   trend?: number
   trendLabel?: string
   subtitle?: string
+  href?: string
 }
 
 export function KPICard({
@@ -17,13 +19,14 @@ export function KPICard({
   trend,
   trendLabel,
   subtitle,
+  href,
 }: KPICardProps) {
   const isPositive = trend !== undefined && trend >= 0
   const trendColor = isPositive ? 'text-green-600' : 'text-red-600'
   const trendBgColor = isPositive ? 'bg-green-50' : 'bg-red-50'
 
-  return (
-    <Card className="border border-gray-200 bg-white hover:shadow-2xl hover:scale-105 hover:border-black transition-all duration-300 cursor-pointer">
+  const content = (
+    <>
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
         <CardTitle className="text-sm font-medium text-gray-700">{title}</CardTitle>
         <div className="text-gray-400 group-hover:text-black transition-colors duration-300">{icon}</div>
@@ -46,6 +49,22 @@ export function KPICard({
           <p className="text-xs text-gray-500">{subtitle}</p>
         )}
       </CardContent>
+    </>
+  )
+
+  if (href) {
+    return (
+      <Link href={href} className="block">
+        <Card className="border border-gray-200 bg-white hover:shadow-2xl hover:scale-105 hover:border-black transition-all duration-300 cursor-pointer">
+          {content}
+        </Card>
+      </Link>
+    )
+  }
+
+  return (
+    <Card className="border border-gray-200 bg-white hover:shadow-2xl hover:scale-105 hover:border-black transition-all duration-300 cursor-pointer">
+      {content}
     </Card>
   )
 }
