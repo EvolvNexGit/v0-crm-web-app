@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import {
   Table,
   TableBody,
@@ -21,7 +20,6 @@ import { Spinner } from '@/components/ui/spinner'
 import type { AppointmentWithClient } from '@/lib/supabase/types'
 
 export function AppointmentsPageClient() {
-  const router = useRouter()
   const [search, setSearch] = useState('')
   const [appointments, setAppointments] = useState<AppointmentWithClient[]>([])
   const [loadingId, setLoadingId] = useState<string | null>(null)
@@ -52,7 +50,7 @@ export function AppointmentsPageClient() {
       if (!res.ok) throw new Error('Failed to fetch')
       const data = await res.json()
       setAppointments(data || [])
-    } catch {
+    } catch (err) {
       toast.error('Failed to load appointments')
     } finally {
       setLoading(false)
@@ -75,6 +73,7 @@ export function AppointmentsPageClient() {
       const res = await fetch(`/api/appointments/${id}/confirm`, { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed')
+      // Optimistically update status
       setAppointments((prev) =>
         prev.map((a) => (a.id === id ? { ...a, status: 'booked' as const } : a))
       )
@@ -92,6 +91,7 @@ export function AppointmentsPageClient() {
       const res = await fetch(`/api/appointments/${id}`, { method: 'DELETE' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed')
+      // Optimistically remove from list
       setAppointments((prev) => prev.filter((a) => a.id !== id))
       toast.success('Appointment deleted')
     } catch (err) {
@@ -113,10 +113,11 @@ export function AppointmentsPageClient() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed')
+      // Optimistically add to top of list immediately
+      setAppointments((prev) => [{ ...data, client: undefined }, ...prev])
       setAddOpen(false)
       setForm({ name: '', phone: '', email: '', service: '', location: '', staff_name: '', date: '', start_time: '', end_time: '', remark: '' })
       toast.success('Appointment added')
-      fetchAppointments()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to add appointment')
     } finally {
@@ -243,7 +244,7 @@ export function AppointmentsPageClient() {
           <DialogHeader>
             <DialogTitle>Delete Appointment</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-gray-600">Are you sure you want to delete this appointment? This action cannot be undone.</p>
+          <p className="text-sm text-gray-600">Are you sure you want to delete this appointment?</p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
             <Button
@@ -267,90 +268,44 @@ export function AppointmentsPageClient() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700">Name *</label>
-                <Input
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  required
-                  className="mt-1"
-                />
+                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="mt-1" />
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">Phone</label>
-                <Input
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="mt-1"
-                />
+                <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="mt-1" />
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">Email</label>
-                <Input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="mt-1"
-                />
+                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="mt-1" />
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">Service</label>
-                <Input
-                  value={form.service}
-                  onChange={(e) => setForm({ ...form, service: e.target.value })}
-                  className="mt-1"
-                />
+                <Input value={form.service} onChange={(e) => setForm({ ...form, service: e.target.value })} className="mt-1" />
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">Location</label>
-                <Input
-                  value={form.location}
-                  onChange={(e) => setForm({ ...form, location: e.target.value })}
-                  className="mt-1"
-                />
+                <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className="mt-1" />
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">Staff</label>
-                <Input
-                  value={form.staff_name}
-                  onChange={(e) => setForm({ ...form, staff_name: e.target.value })}
-                  className="mt-1"
-                />
+                <Input value={form.staff_name} onChange={(e) => setForm({ ...form, staff_name: e.target.value })} className="mt-1" />
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">Date *</label>
-                <Input
-                  type="date"
-                  value={form.date}
-                  onChange={(e) => setForm({ ...form, date: e.target.value })}
-                  required
-                  className="mt-1"
-                />
+                <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required className="mt-1" />
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">Start Time</label>
-                <Input
-                  type="time"
-                  value={form.start_time}
-                  onChange={(e) => setForm({ ...form, start_time: e.target.value })}
-                  className="mt-1"
-                />
+                <Input type="time" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} className="mt-1" />
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">End Time</label>
-                <Input
-                  type="time"
-                  value={form.end_time}
-                  onChange={(e) => setForm({ ...form, end_time: e.target.value })}
-                  className="mt-1"
-                />
+                <Input type="time" value={form.end_time} onChange={(e) => setForm({ ...form, end_time: e.target.value })} className="mt-1" />
               </div>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Remark</label>
-              <Textarea
-                value={form.remark}
-                onChange={(e) => setForm({ ...form, remark: e.target.value })}
-                className="mt-1"
-              />
+              <Textarea value={form.remark} onChange={(e) => setForm({ ...form, remark: e.target.value })} className="mt-1" />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button>
