@@ -2,6 +2,34 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/supabase/queries'
 import { NextRequest, NextResponse } from 'next/server'
 
+export async function GET() {
+  try {
+    const currentUser = await getCurrentUser()
+    if (!currentUser?.tenant_id) {
+      return NextResponse.json([], { status: 200 })
+    }
+
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('tenant_id', currentUser.tenant_id)
+      .eq('is_completed', false)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching tasks:', JSON.stringify(error))
+      return NextResponse.json([], { status: 200 })
+    }
+
+    return NextResponse.json(data || [], { status: 200 })
+  } catch (error) {
+    console.error('Error fetching tasks:', error)
+    return NextResponse.json([], { status: 200 })
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser()
