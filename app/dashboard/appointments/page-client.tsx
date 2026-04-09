@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Table,
   TableBody,
@@ -46,8 +46,13 @@ export function AppointmentsPageClient({ initialAppointments }: AppointmentsPage
   })
   const [submitting, setSubmitting] = useState(false)
 
+  useEffect(() => {
+    fetchAppointments()
+  }, [])
+
   async function fetchAppointments() {
     try {
+      setLoading(true)
       const res = await fetch('/api/appointments')
       if (!res.ok) throw new Error('Failed to fetch')
       const data = await res.json()
