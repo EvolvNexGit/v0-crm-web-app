@@ -8,7 +8,14 @@ export async function getCurrentUser() {
   if (!session?.user) return null
 
   const user = session.user
-  return { ...user, tenant_id: user.id }
+  const { data: appUser } = await supabase
+    .from('users')
+    .select('tenant_id')
+    .eq('id', user.id)
+    .single()
+
+  // Fallback to auth user id for legacy records where tenant_id == auth.uid().
+  return { ...user, tenant_id: appUser?.tenant_id ?? user.id }
 }
 
 export async function getAppointments() {
