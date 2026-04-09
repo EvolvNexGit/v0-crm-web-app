@@ -42,18 +42,24 @@ export function AppointmentsPageClient() {
   })
   const [submitting, setSubmitting] = useState(false)
 
+  // Load from sessionStorage on mount (synchronous, instant)
   useEffect(() => {
-    // Load from sessionStorage first for instant UI
-    const cached = typeof window !== 'undefined' ? sessionStorage.getItem(STORAGE_KEY) : null
-    if (cached) {
-      try {
-        setAppointments(JSON.parse(cached))
-        setLoading(false)
-      } catch (e) {
-        // Invalid cache, ignore
+    if (typeof window !== 'undefined') {
+      const cached = sessionStorage.getItem(STORAGE_KEY)
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached)
+          setAppointments(parsed)
+          setLoading(false)
+        } catch (e) {
+          sessionStorage.removeItem(STORAGE_KEY)
+        }
       }
     }
-    // Always fetch fresh data from DB
+  }, [])
+
+  // Fetch fresh data from API after initial render
+  useEffect(() => {
     fetchAppointments()
   }, [])
 
@@ -62,13 +68,19 @@ export function AppointmentsPageClient() {
       const res = await fetch('/api/appointments')
       if (!res.ok) throw new Error('Failed to fetch')
       const data = await res.json()
-      const appts = data || []
-      setAppointments(appts)
-      // Cache to sessionStorage for tab persistence
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(appts))
+
+      // Only update if we got valid data from API
+      if (Array.isArray(data) && data.length > 0) {
+        setAppointments(data)
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+        }
+      } else if (Array.isArray(data) && data.length === 0) {
+        // API returned empty - keep cached data, don't overwrite
+        console.log('API returned empty, keeping cached data')
       }
     } catch (err) {
+      console.error('Fetch error:', err)
       toast.error('Failed to load appointments')
     } finally {
       setLoading(false)
@@ -146,6 +158,8 @@ export function AppointmentsPageClient() {
       setAddOpen(false)
       setForm({ name: '', phone: '', email: '', service: '', location: '', staff_name: '', date: '', start_time: '', end_time: '', remark: '' })
       toast.success('Appointment added')
+      // Refresh from DB to ensure we have the latest data
+      setTimeout(() => fetchAppointments(), 500)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to add appointment')
     } finally {
