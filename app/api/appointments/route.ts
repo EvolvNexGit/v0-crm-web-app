@@ -17,7 +17,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from('appointments')
-      .select('*, client:clients(*)')
+      .select('*')
       .eq('tenant_id', currentUser.tenant_id)
       .order('date', { ascending: false })
       .order('start_time', { ascending: false })
