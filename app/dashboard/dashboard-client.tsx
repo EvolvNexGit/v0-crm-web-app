@@ -38,9 +38,9 @@ export function DashboardClient() {
     try {
       const res = await fetch('/api/appointments')
       if (res.ok) {
-        const data = await res.json()
+        const response = await res.json()
         const today = new Date().toISOString().split('T')[0]
-        const upcoming = (data || []).filter(
+        const upcoming = (response?.data || []).filter(
           (a: AppointmentWithClient) =>
             a.date >= today && ['tentative', 'booked'].includes(a.status)
         ).slice(0, 5)
