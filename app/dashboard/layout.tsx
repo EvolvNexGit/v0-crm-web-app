@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 
 export const metadata = {
   title: 'Dashboard - EvolvNex CRM',
-  description: 'Manage your customers and appointments',
+  description: 'Manage your appointments',
 }
 
 export default async function DashboardLayout({

@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
-import { BarChart3, Users, Calendar, LogOut } from 'lucide-react'
+import { BarChart3, Calendar, LogOut } from 'lucide-react'
 import { useState } from 'react'
 
 interface SidebarProps {
@@ -30,11 +30,6 @@ export function Sidebar({ userEmail, tenantName }: SidebarProps) {
       name: 'Dashboard',
       href: '/dashboard',
       icon: BarChart3,
-    },
-    {
-      name: 'Customers',
-      href: '/dashboard/customers',
-      icon: Users,
     },
     {
       name: 'Appointments',

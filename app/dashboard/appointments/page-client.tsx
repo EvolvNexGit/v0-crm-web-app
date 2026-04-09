@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Table,
   TableBody,
@@ -14,20 +14,24 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Search, Calendar, Trash2, Check, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Spinner } from '@/components/ui/spinner'
 import type { AppointmentWithClient } from '@/lib/supabase/types'
 
-const STORAGE_KEY = 'appointments_cache'
+interface AppointmentsPageClientProps {
+  initialAppointments: AppointmentWithClient[]
+}
 
-export function AppointmentsPageClient() {
+export function AppointmentsPageClient({ initialAppointments }: AppointmentsPageClientProps) {
   const [search, setSearch] = useState('')
-  const [appointments, setAppointments] = useState<AppointmentWithClient[]>([])
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [appointments, setAppointments] = useState<AppointmentWithClient[]>(initialAppointments)
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [addOpen, setAddOpen] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -42,42 +46,14 @@ export function AppointmentsPageClient() {
   })
   const [submitting, setSubmitting] = useState(false)
 
-  // Load from sessionStorage on mount (synchronous, instant)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const cached = sessionStorage.getItem(STORAGE_KEY)
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached)
-          setAppointments(parsed)
-          setLoading(false)
-        } catch (e) {
-          sessionStorage.removeItem(STORAGE_KEY)
-        }
-      }
-    }
-  }, [])
-
-  // Fetch fresh data from API after initial render
-  useEffect(() => {
-    fetchAppointments()
-  }, [])
-
   async function fetchAppointments() {
     try {
       const res = await fetch('/api/appointments')
       if (!res.ok) throw new Error('Failed to fetch')
       const data = await res.json()
 
-      // Only update if we got valid data from API
-      if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data)) {
         setAppointments(data)
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-        }
-      } else if (Array.isArray(data) && data.length === 0) {
-        // API returned empty - keep cached data, don't overwrite
-        console.log('API returned empty, keeping cached data')
       }
     } catch (err) {
       console.error('Fetch error:', err)
@@ -89,11 +65,13 @@ export function AppointmentsPageClient() {
 
   const filtered = appointments.filter((a) => {
     const q = search.toLowerCase()
+    const matchesStatus = statusFilter === 'all' || a.status === statusFilter
     return (
-      a.name?.toLowerCase().includes(q) ||
-      a.phone?.includes(q) ||
-      a.status.toLowerCase().includes(q) ||
-      a.date?.includes(q)
+      matchesStatus &&
+      (a.name?.toLowerCase().includes(q) ||
+        a.phone?.includes(q) ||
+        a.status.toLowerCase().includes(q) ||
+        a.date?.includes(q))
     )
   })
 
@@ -106,9 +84,6 @@ export function AppointmentsPageClient() {
       // Optimistically update status
       const updated = appointments.map((a) => (a.id === id ? { ...a, status: 'booked' as const } : a))
       setAppointments(updated)
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-      }
       toast.success('Appointment confirmed')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to confirm')
@@ -126,9 +101,6 @@ export function AppointmentsPageClient() {
       // Optimistically remove from list
       const updated = appointments.filter((a) => a.id !== id)
       setAppointments(updated)
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-      }
       toast.success('Appointment deleted')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to delete')
@@ -152,9 +124,6 @@ export function AppointmentsPageClient() {
       // Optimistically add to top of list immediately
       const updated = [{ ...data, client: undefined }, ...appointments]
       setAppointments(updated)
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-      }
       setAddOpen(false)
       setForm({ name: '', phone: '', email: '', service: '', location: '', staff_name: '', date: '', start_time: '', end_time: '', remark: '' })
       toast.success('Appointment added')
@@ -197,14 +166,31 @@ export function AppointmentsPageClient() {
       </div>
 
       <div className="p-6 space-y-4">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search by name, phone, date, or status..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search by name, phone, date, or status..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          <div className="w-full md:w-56">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="tentative">Pending</SelectItem>
+                <SelectItem value="booked">Confirmed</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="rounded-lg border bg-white">
