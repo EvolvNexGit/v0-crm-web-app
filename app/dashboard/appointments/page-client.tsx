@@ -54,11 +54,17 @@ export function AppointmentsPageClient({ initialAppointments }: AppointmentsPage
     try {
       setLoading(true)
       const res = await fetch('/api/appointments')
-      if (!res.ok) throw new Error('Failed to fetch')
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null)
+        console.error('[appointments page] API error response:', errorData)
+        throw new Error(errorData?.debug || 'Failed to fetch')
+      }
       const data = await res.json()
 
-      if (Array.isArray(data)) {
-        setAppointments(data)
+      console.log('[appointments page] API response:', data)
+
+      if (Array.isArray(data?.data)) {
+        setAppointments(data.data)
       }
     } catch (err) {
       console.error('Fetch error:', err)
