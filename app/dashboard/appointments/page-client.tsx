@@ -59,12 +59,12 @@ export function AppointmentsPageClient({ initialAppointments }: AppointmentsPage
         console.error('[appointments page] API error response:', errorData)
         throw new Error(errorData?.debug || 'Failed to fetch')
       }
-      const data = await res.json()
+      const response = await res.json()
 
-      console.log('[appointments page] API response:', data)
+      console.log('[appointments page] API response:', response)
 
-      if (Array.isArray(data?.data)) {
-        setAppointments(data.data)
+      if (Array.isArray(response?.data)) {
+        setAppointments(response.data)
       }
     } catch (err) {
       console.error('Fetch error:', err)
