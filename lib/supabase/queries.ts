@@ -24,7 +24,7 @@ export async function getAppointments() {
 
   const { data } = await supabase
     .from('appointments')
-    .select('*, client:clients(*)')
+    .select('*')
     .eq('tenant_id', currentUser.tenant_id)
     .order('date', { ascending: false })
     .order('start_time', { ascending: false })
@@ -127,7 +127,7 @@ export async function getUpcomingAppointments(limit = 5) {
 
   const { data } = await supabase
     .from('appointments')
-    .select('*, client:clients(*)')
+    .select('*')
     .eq('tenant_id', currentUser.tenant_id)
     .in('status', ['tentative', 'booked'])
     .gte('date', today)
