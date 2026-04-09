@@ -19,6 +19,8 @@ import { toast } from 'sonner'
 import { Spinner } from '@/components/ui/spinner'
 import type { AppointmentWithClient } from '@/lib/supabase/types'
 
+const STORAGE_KEY = 'appointments_cache'
+
 export function AppointmentsPageClient() {
   const [search, setSearch] = useState('')
   const [appointments, setAppointments] = useState<AppointmentWithClient[]>([])
@@ -41,6 +43,17 @@ export function AppointmentsPageClient() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
+    // Load from sessionStorage first for instant UI
+    const cached = typeof window !== 'undefined' ? sessionStorage.getItem(STORAGE_KEY) : null
+    if (cached) {
+      try {
+        setAppointments(JSON.parse(cached))
+        setLoading(false)
+      } catch (e) {
+        // Invalid cache, ignore
+      }
+    }
+    // Always fetch fresh data from DB
     fetchAppointments()
   }, [])
 
@@ -49,7 +62,12 @@ export function AppointmentsPageClient() {
       const res = await fetch('/api/appointments')
       if (!res.ok) throw new Error('Failed to fetch')
       const data = await res.json()
-      setAppointments(data || [])
+      const appts = data || []
+      setAppointments(appts)
+      // Cache to sessionStorage for tab persistence
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(appts))
+      }
     } catch (err) {
       toast.error('Failed to load appointments')
     } finally {
@@ -74,9 +92,11 @@ export function AppointmentsPageClient() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed')
       // Optimistically update status
-      setAppointments((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, status: 'booked' as const } : a))
-      )
+      const updated = appointments.map((a) => (a.id === id ? { ...a, status: 'booked' as const } : a))
+      setAppointments(updated)
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+      }
       toast.success('Appointment confirmed')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to confirm')
@@ -92,7 +112,11 @@ export function AppointmentsPageClient() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed')
       // Optimistically remove from list
-      setAppointments((prev) => prev.filter((a) => a.id !== id))
+      const updated = appointments.filter((a) => a.id !== id)
+      setAppointments(updated)
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+      }
       toast.success('Appointment deleted')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to delete')
@@ -114,7 +138,11 @@ export function AppointmentsPageClient() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed')
       // Optimistically add to top of list immediately
-      setAppointments((prev) => [{ ...data, client: undefined }, ...prev])
+      const updated = [{ ...data, client: undefined }, ...appointments]
+      setAppointments(updated)
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+      }
       setAddOpen(false)
       setForm({ name: '', phone: '', email: '', service: '', location: '', staff_name: '', date: '', start_time: '', end_time: '', remark: '' })
       toast.success('Appointment added')
