@@ -8,7 +8,7 @@ export async function GET() {
 
     if (!currentUser?.tenant_id) {
       console.log('[appointments API] No user or tenant_id found')
-      return NextResponse.json([], { status: 200 })
+      return NextResponse.json({ data: [], debug: 'no-user-or-tenant' }, { status: 200 })
     }
 
     const supabase = await createClient()
@@ -24,14 +24,14 @@ export async function GET() {
 
     if (error) {
       console.error('[appointments API] Supabase error:', JSON.stringify(error))
-      return NextResponse.json([], { status: 200 })
+      return NextResponse.json({ data: [], debug: error.message }, { status: 500 })
     }
 
     console.log('[appointments API] Found', data?.length || 0, 'appointments')
-    return NextResponse.json(data || [], { status: 200 })
+    return NextResponse.json({ data: data || [], debug: { tenant_id: currentUser.tenant_id, count: data?.length || 0 } }, { status: 200 })
   } catch (error: any) {
     console.error('[appointments API] Error:', error)
-    return NextResponse.json([], { status: 200 })
+    return NextResponse.json({ data: [], debug: error?.message || 'unexpected-error' }, { status: 500 })
   }
 }
 

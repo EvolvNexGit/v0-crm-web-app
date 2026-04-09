@@ -3,11 +3,10 @@ import type { Client, Appointment, AppointmentWithClient, Task } from './types'
 
 export async function getCurrentUser() {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session?.user) return null
+  if (!user) return null
 
-  const user = session.user
   const { data: appUser } = await supabase
     .from('users')
     .select('tenant_id')
