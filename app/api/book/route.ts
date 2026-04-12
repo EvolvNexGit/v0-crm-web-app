@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getClientId } from '@/lib/supabase/queries'
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
 
     const {
+      tenant_id,
+      client_id,
       name,
       phone,
       email,
@@ -19,9 +20,7 @@ export async function POST(req: Request) {
       remark,
     } = body
 
-    const clientId = await getClientId()
-
-    if (!clientId || !date || !name) {
+    if (!tenant_id || !date || !name) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -29,7 +28,8 @@ export async function POST(req: Request) {
 
     const { error } = await supabase.from('appointments').insert([
       {
-        client_id: clientId,
+        tenant_id,
+        client_id: client_id || null,
         name,
         phone: phone || null,
         email: email || null,

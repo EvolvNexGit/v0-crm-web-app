@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server'
 export async function GET() {
   try {
     const currentUser = await getCurrentUser()
-    if (!currentUser?.client_id) {
+    if (!currentUser?.tenant_id) {
       return NextResponse.json({ total: 0, pending: 0, confirmed: 0, thisMonth: 0 })
     }
 
@@ -17,10 +17,10 @@ export async function GET() {
 
     const [{ count: total }, { count: pending }, { count: confirmed }, { count: thisMonth }] =
       await Promise.all([
-        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('client_id', currentUser.client_id),
-        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('client_id', currentUser.client_id).eq('status', 'tentative'),
-        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('client_id', currentUser.client_id).eq('status', 'booked').eq('date', today),
-        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('client_id', currentUser.client_id).gte('date', startOfMonth),
+        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('tenant_id', currentUser.tenant_id),
+        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('tenant_id', currentUser.tenant_id).eq('status', 'tentative'),
+        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('tenant_id', currentUser.tenant_id).eq('status', 'booked').eq('date', today),
+        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('tenant_id', currentUser.tenant_id).gte('date', startOfMonth),
       ])
 
     return NextResponse.json({

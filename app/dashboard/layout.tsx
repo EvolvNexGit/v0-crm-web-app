@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { redirect } from 'next/navigation'
-import { getClientId } from '@/lib/supabase/queries'
 
 export const metadata = {
   title: 'Dashboard - EvolvNex CRM',
@@ -20,18 +19,14 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  const clientId = await getClientId()
-  if (!clientId) {
-    redirect('/login')
-  }
-
-  const { data: clientData } = await supabase
-    .from('clients')
-    .select('name')
-    .eq('id', clientId)
+  // Get tenant info
+  const { data: userData } = await supabase
+    .from('users')
+    .select('*, tenants(*)')
+    .eq('id', user.id)
     .single()
 
-  const tenantName = clientData?.name
+  const tenantName = userData?.tenants?.name
 
   return (
     <div className="flex h-screen bg-background">
