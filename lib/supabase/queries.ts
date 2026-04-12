@@ -20,12 +20,29 @@ export async function getClientId() {
 
   if (!user) return null
 
-  const admin = createAdminClient()
-  const { data: client, error } = await admin
-    .from('clients')
-    .select('id')
-    .eq('crm_user_id', user.id)
-    .maybeSingle()
+  let client: { id: string } | null = null
+  let error: { message: string } | null = null
+
+  try {
+    const admin = createAdminClient()
+    const adminResult = await admin
+      .from('clients')
+      .select('id')
+      .eq('crm_user_id', user.id)
+      .maybeSingle()
+
+    client = adminResult.data
+    error = adminResult.error
+  } catch {
+    const fallbackResult = await supabase
+      .from('clients')
+      .select('id')
+      .eq('crm_user_id', user.id)
+      .maybeSingle()
+
+    client = fallbackResult.data
+    error = fallbackResult.error
+  }
 
   if (error) throw error
   if (!client?.id) {
