@@ -11,12 +11,29 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const admin = createAdminClient()
-    const { data: client, error } = await admin
-      .from('clients')
-      .select('id')
-      .eq('crm_user_id', user.id)
-      .maybeSingle()
+    let client: { id: string } | null = null
+    let error: { message: string } | null = null
+
+    try {
+      const admin = createAdminClient()
+      const adminResult = await admin
+        .from('clients')
+        .select('id')
+        .eq('crm_user_id', user.id)
+        .maybeSingle()
+
+      client = adminResult.data
+      error = adminResult.error
+    } catch {
+      const fallbackResult = await supabase
+        .from('clients')
+        .select('id')
+        .eq('crm_user_id', user.id)
+        .maybeSingle()
+
+      client = fallbackResult.data
+      error = fallbackResult.error
+    }
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
@@ -49,13 +66,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Client name is required' }, { status: 400 })
     }
 
-    const admin = createAdminClient()
+    let existing: { id: string } | null = null
+    let existingError: { message: string } | null = null
+    let useFallback = false
 
-    const { data: existing, error: existingError } = await admin
-      .from('clients')
-      .select('id')
-      .eq('crm_user_id', user.id)
-      .maybeSingle()
+    try {
+      const admin = createAdminClient()
+      const adminExisting = await admin
+        .from('clients')
+        .select('id')
+        .eq('crm_user_id', user.id)
+        .maybeSingle()
+      existing = adminExisting.data
+      existingError = adminExisting.error
+    } catch {
+      useFallback = true
+      const fallbackExisting = await supabase
+        .from('clients')
+        .select('id')
+        .eq('crm_user_id', user.id)
+        .maybeSingle()
+      existing = fallbackExisting.data
+      existingError = fallbackExisting.error
+    }
 
     if (existingError) {
       return NextResponse.json({ error: existingError.message }, { status: 500 })
@@ -65,11 +98,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ client_id: existing.id }, { status: 200 })
     }
 
-    const { data: created, error: createError } = await admin
-      .from('clients')
-      .insert({ name: name.trim(), crm_user_id: user.id })
-      .select('id')
-      .single()
+    const createResult = useFallback
+      ? await supabase
+          .from('clients')
+          .insert({ name: name.trim(), crm_user_id: user.id })
+          .select('id')
+          .single()
+      : await createAdminClient()
+          .from('clients')
+          .insert({ name: name.trim(), crm_user_id: user.id })
+          .select('id')
+          .single()
+
+    const created = createResult.data
+    const createError = createResult.error
 
     if (createError) {
       return NextResponse.json({ error: createError.message }, { status: 500 })
