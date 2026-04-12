@@ -7,7 +7,7 @@ export type Tenant = {
 
 export type User = {
   id: string
-  tenant_id: string
+  client_id: string
   role: string
   created_at: string
 }
@@ -44,8 +44,7 @@ export type Client = {
 
 export type Appointment = {
   id: string
-  tenant_id: string
-  client_id: string | null
+  client_id: string
   name: string | null
   phone: string | null
   email: string | null
@@ -67,7 +66,7 @@ export type Appointment = {
 
 export type Task = {
   id: string
-  tenant_id: string
+  client_id: string
   title: string
   is_completed: boolean
   created_at: string

@@ -8,10 +8,12 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
+import { useClient } from '@/components/auth/ClientContext'
 
 export function LoginForm() {
   const router = useRouter()
   const supabase = createClient()
+  const { setClientId } = useClient()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -32,6 +34,30 @@ export function LoginForm() {
         setError(error.message)
         return
       }
+
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      if (userError || !user) {
+        setError('Unable to fetch authenticated user')
+        return
+      }
+
+      const { data: client, error: clientError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (clientError) {
+        setError(clientError.message)
+        return
+      }
+
+      if (!client?.id) {
+        setError('No client mapping found for this user')
+        return
+      }
+
+      setClientId(client.id)
 
       router.push('/dashboard')
     } catch (err) {

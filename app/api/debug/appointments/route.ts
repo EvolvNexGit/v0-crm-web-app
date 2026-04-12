@@ -6,13 +6,13 @@ export async function GET() {
   try {
     const currentUser = await getCurrentUser()
 
-    if (!currentUser?.tenant_id) {
+    if (!currentUser?.client_id) {
       return NextResponse.json(
         {
           user_id: currentUser?.id ?? null,
-          tenant_id: null,
+          client_id: null,
           appointment_count: 0,
-          debug: 'no-user-or-tenant',
+          debug: 'no-user-or-client',
         },
         { status: 200 }
       )
@@ -22,13 +22,13 @@ export async function GET() {
     const { count, error } = await supabase
       .from('appointments')
       .select('*', { count: 'exact', head: true })
-      .eq('tenant_id', currentUser.tenant_id)
+      .eq('client_id', currentUser.client_id)
 
     if (error) {
       return NextResponse.json(
         {
           user_id: currentUser.id,
-          tenant_id: currentUser.tenant_id,
+          client_id: currentUser.client_id,
           appointment_count: 0,
           debug: error.message,
         },
@@ -39,7 +39,7 @@ export async function GET() {
     return NextResponse.json(
       {
         user_id: currentUser.id,
-        tenant_id: currentUser.tenant_id,
+        client_id: currentUser.client_id,
         appointment_count: count ?? 0,
       },
       { status: 200 }
@@ -48,7 +48,7 @@ export async function GET() {
     return NextResponse.json(
       {
         user_id: null,
-        tenant_id: null,
+        client_id: null,
         appointment_count: 0,
         debug: error?.message || 'unexpected-error',
       },

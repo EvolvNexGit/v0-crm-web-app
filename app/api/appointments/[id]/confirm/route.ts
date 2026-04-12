@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/supabase/queries'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(
@@ -6,6 +7,11 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const currentUser = await getCurrentUser()
+    if (!currentUser?.client_id) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    }
+
     const supabase = await createClient()
     const { id } = await params
 
@@ -20,6 +26,7 @@ export async function POST(
         verified_at: new Date().toISOString(),
       })
       .eq('id', id)
+      .eq('client_id', currentUser.client_id)
 
     if (error) {
       console.error('Error confirming appointment:', JSON.stringify(error))
