@@ -9,23 +9,23 @@ export async function getCurrentUser() {
 
   const { data: appUser } = await supabase
     .from('users')
-    .select('tenant_id')
+    .select('B2C_end_user_id')
     .eq('id', user.id)
     .single()
 
-  // Fallback to auth user id for legacy records where tenant_id == auth.uid().
-  return { ...user, tenant_id: appUser?.tenant_id ?? user.id }
+  // Fallback to auth user id for legacy records where B2C_end_user_id == auth.uid().
+  return { ...user, B2C_end_user_id: appUser?.B2C_end_user_id ?? user.id }
 }
 
 export async function getAppointments() {
   const supabase = await createClient()
   const currentUser = await getCurrentUser()
-  if (!currentUser?.tenant_id) return []
+  if (!currentUser?.B2C_end_user_id) return []
 
   const { data } = await supabase
     .from('appointments')
     .select('*')
-    .eq('tenant_id', currentUser.tenant_id)
+    .eq('B2C_end_user_id', currentUser.B2C_end_user_id)
     .order('date', { ascending: false })
     .order('start_time', { ascending: false })
 
@@ -35,11 +35,11 @@ export async function getAppointments() {
 export async function createAppointment(appointment: Partial<Appointment>) {
   const supabase = await createClient()
   const currentUser = await getCurrentUser()
-  if (!currentUser?.tenant_id) throw new Error('Unauthorized')
+  if (!currentUser?.B2C_end_user_id) throw new Error('Unauthorized')
 
   const { data, error } = await supabase
     .from('appointments')
-    .insert({ ...appointment, tenant_id: currentUser.tenant_id })
+    .insert({ ...appointment, B2C_end_user_id: currentUser.B2C_end_user_id })
     .select()
     .single()
 
@@ -69,14 +69,14 @@ export async function deleteAppointment(id: string) {
 export async function getCustomers() {
   const supabase = await createClient()
   const currentUser = await getCurrentUser()
-  if (!currentUser?.tenant_id) return []
+  if (!currentUser?.B2C_end_user_id) return []
 
   const { data } = await supabase
     .from('appointments')
     .select(`
       id, name, phone, email, created_at
     `)
-    .eq('tenant_id', currentUser.tenant_id)
+    .eq('B2C_end_user_id', currentUser.B2C_end_user_id)
     .not('name', 'is', null)
 
   if (!data) return []
@@ -96,7 +96,7 @@ export async function getCustomers() {
 export async function getDashboardStats() {
   const supabase = await createClient()
   const currentUser = await getCurrentUser()
-  if (!currentUser?.tenant_id) return { total: 0, pending: 0, confirmed: 0, thisMonth: 0 }
+  if (!currentUser?.B2C_end_user_id) return { total: 0, pending: 0, confirmed: 0, thisMonth: 0 }
 
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
@@ -104,10 +104,10 @@ export async function getDashboardStats() {
 
   const [{ count: total }, { count: pending }, { count: confirmed }, { count: thisMonth }] =
     await Promise.all([
-      supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('tenant_id', currentUser.tenant_id),
-      supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('tenant_id', currentUser.tenant_id).eq('status', 'tentative'),
-      supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('tenant_id', currentUser.tenant_id).eq('status', 'booked').eq('date', today),
-      supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('tenant_id', currentUser.tenant_id).gte('date', startOfMonth),
+      supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('B2C_end_user_id', currentUser.B2C_end_user_id),
+      supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('B2C_end_user_id', currentUser.B2C_end_user_id).eq('status', 'tentative'),
+      supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('B2C_end_user_id', currentUser.B2C_end_user_id).eq('status', 'booked').eq('date', today),
+      supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('B2C_end_user_id', currentUser.B2C_end_user_id).gte('date', startOfMonth),
     ])
 
   return {
@@ -121,14 +121,14 @@ export async function getDashboardStats() {
 export async function getUpcomingAppointments(limit = 5) {
   const supabase = await createClient()
   const currentUser = await getCurrentUser()
-  if (!currentUser?.tenant_id) return []
+  if (!currentUser?.B2C_end_user_id) return []
 
   const today = new Date().toISOString().split('T')[0]
 
   const { data } = await supabase
     .from('appointments')
     .select('*')
-    .eq('tenant_id', currentUser.tenant_id)
+    .eq('B2C_end_user_id', currentUser.B2C_end_user_id)
     .in('status', ['tentative', 'booked'])
     .gte('date', today)
     .order('date', { ascending: true })
@@ -141,12 +141,12 @@ export async function getUpcomingAppointments(limit = 5) {
 export async function getTasks() {
   const supabase = await createClient()
   const currentUser = await getCurrentUser()
-  if (!currentUser?.tenant_id) return []
+  if (!currentUser?.B2C_end_user_id) return []
 
   const { data } = await supabase
     .from('tasks')
     .select('*')
-    .eq('tenant_id', currentUser.tenant_id)
+    .eq('B2C_end_user_id', currentUser.B2C_end_user_id)
     .eq('is_completed', false)
     .order('created_at', { ascending: false })
 
@@ -156,11 +156,11 @@ export async function getTasks() {
 export async function createTask(title: string) {
   const supabase = await createClient()
   const currentUser = await getCurrentUser()
-  if (!currentUser?.tenant_id) throw new Error('Unauthorized')
+  if (!currentUser?.B2C_end_user_id) throw new Error('Unauthorized')
 
   const { data, error } = await supabase
     .from('tasks')
-    .insert({ title, tenant_id: currentUser.tenant_id })
+    .insert({ title, B2C_end_user_id: currentUser.B2C_end_user_id })
     .select()
     .single()
 

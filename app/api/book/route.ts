@@ -6,7 +6,7 @@ export async function POST(req: Request) {
     const body = await req.json()
 
     const {
-      tenant_id,
+      B2C_end_user_id,
       client_id,
       name,
       phone,
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       remark,
     } = body
 
-    if (!tenant_id || !date || !name) {
+    if (!B2C_end_user_id || !date || !name) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
     const { error } = await supabase.from('appointments').insert([
       {
-        tenant_id,
+        B2C_end_user_id,
         client_id: client_id || null,
         name,
         phone: phone || null,

@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server'
 export async function GET() {
   try {
     const currentUser = await getCurrentUser()
-    if (!currentUser?.tenant_id) {
+    if (!currentUser?.B2C_end_user_id) {
       return NextResponse.json([], { status: 200 })
     }
 
@@ -14,7 +14,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from('appointments')
       .select('id, name, phone, email, created_at')
-      .eq('tenant_id', currentUser.tenant_id)
+      .eq('B2C_end_user_id', currentUser.B2C_end_user_id)
       .not('name', 'is', null)
 
     if (error) {

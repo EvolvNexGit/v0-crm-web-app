@@ -6,19 +6,19 @@ export async function GET() {
   try {
     const currentUser = await getCurrentUser()
 
-    if (!currentUser?.tenant_id) {
-      console.log('[appointments API] No user or tenant_id found')
+    if (!currentUser?.B2C_end_user_id) {
+      console.log('[appointments API] No user or B2C_end_user_id found')
       return NextResponse.json({ data: [], debug: 'no-user-or-tenant' }, { status: 200 })
     }
 
     const supabase = await createClient()
 
-    console.log('[appointments API] Fetching for tenant_id:', currentUser.tenant_id)
+    console.log('[appointments API] Fetching for B2C_end_user_id:', currentUser.B2C_end_user_id)
 
     const { data, error } = await supabase
       .from('appointments')
       .select('*')
-      .eq('tenant_id', currentUser.tenant_id)
+      .eq('B2C_end_user_id', currentUser.B2C_end_user_id)
       .order('date', { ascending: false })
       .order('start_time', { ascending: false })
 
@@ -28,7 +28,7 @@ export async function GET() {
     }
 
     console.log('[appointments API] Found', data?.length || 0, 'appointments')
-    return NextResponse.json({ data: data || [], debug: { tenant_id: currentUser.tenant_id, count: data?.length || 0 } }, { status: 200 })
+    return NextResponse.json({ data: data || [], debug: { B2C_end_user_id: currentUser.B2C_end_user_id, count: data?.length || 0 } }, { status: 200 })
   } catch (error: any) {
     console.error('[appointments API] Error:', error)
     return NextResponse.json({ data: [], debug: error?.message || 'unexpected-error' }, { status: 500 })
@@ -38,18 +38,18 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser()
-    if (!currentUser?.tenant_id) {
+    if (!currentUser?.B2C_end_user_id) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
     const supabase = await createClient()
 
-    console.log('[appointments API POST] Creating appointment for tenant:', currentUser.tenant_id)
+    console.log('[appointments API POST] Creating appointment for tenant:', currentUser.B2C_end_user_id)
 
     const { data, error } = await supabase
       .from('appointments')
-      .insert({ ...body, tenant_id: currentUser.tenant_id })
+      .insert({ ...body, B2C_end_user_id: currentUser.B2C_end_user_id })
       .select()
       .single()
 
