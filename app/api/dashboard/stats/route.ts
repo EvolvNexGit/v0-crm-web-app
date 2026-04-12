@@ -1,15 +1,15 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getCurrentUser } from '@/lib/supabase/queries'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
     const currentUser = await getCurrentUser()
-    if (!currentUser?.tenant_id) {
+    if (!currentUser?.B2C_end_user_id) {
       return NextResponse.json({ total: 0, pending: 0, confirmed: 0, thisMonth: 0 })
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
@@ -17,10 +17,10 @@ export async function GET() {
 
     const [{ count: total }, { count: pending }, { count: confirmed }, { count: thisMonth }] =
       await Promise.all([
-        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('tenant_id', currentUser.tenant_id),
-        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('tenant_id', currentUser.tenant_id).eq('status', 'tentative'),
-        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('tenant_id', currentUser.tenant_id).eq('status', 'booked').eq('date', today),
-        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('tenant_id', currentUser.tenant_id).gte('date', startOfMonth),
+        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('B2C_end_user_id', currentUser.B2C_end_user_id),
+        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('B2C_end_user_id', currentUser.B2C_end_user_id).eq('status', 'tentative'),
+        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('B2C_end_user_id', currentUser.B2C_end_user_id).eq('status', 'booked').eq('date', today),
+        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('B2C_end_user_id', currentUser.B2C_end_user_id).gte('date', startOfMonth),
       ])
 
     return NextResponse.json({
