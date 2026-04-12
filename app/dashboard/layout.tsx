@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { redirect } from 'next/navigation'
 import { getClientId } from '@/lib/supabase/queries'
@@ -26,8 +25,7 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  const admin = createAdminClient()
-  const { data: clientData } = await admin
+  const { data: clientData } = await supabase
     .from('clients')
     .select('name')
     .eq('id', clientId)
