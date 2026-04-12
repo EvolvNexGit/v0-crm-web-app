@@ -230,7 +230,7 @@ alter table custom_field_values enable row level security;
 create table tasks (
   id uuid primary key default gen_random_uuid(),
 
-  B2C_end_user_id uuid not null,
+  tenant_id uuid not null,
 
   title text not null,
 
@@ -239,8 +239,8 @@ create table tasks (
   created_at timestamp default now()
 );
 
--- Add B2C_end_user_id to appointments BEFORE creating policies that reference it
-alter table appointments add column if not exists B2C_end_user_id uuid not null default auth.uid();
+-- Add tenant_id to appointments BEFORE creating policies that reference it
+alter table appointments add column if not exists tenant_id uuid not null default auth.uid();
 
 alter table tasks disable row level security;
 
@@ -248,8 +248,8 @@ drop policy if exists "tenant access on tasks" on tasks;
 create policy "tenant access on tasks"
 on tasks
 for all
-using (B2C_end_user_id = auth.uid())
-with check (B2C_end_user_id = auth.uid());
+using (tenant_id = auth.uid())
+with check (tenant_id = auth.uid());
 
 drop policy if exists "client access on leads" on leads;
 create policy "client access on leads"
@@ -262,8 +262,8 @@ drop policy if exists "client access on appointments" on appointments;
 create policy "client access on appointments"
 on appointments
 for all
-using (B2C_end_user_id = auth.uid())
-with check (B2C_end_user_id = auth.uid());
+using (tenant_id = auth.uid())
+with check (tenant_id = auth.uid());
 
 drop policy if exists "internal only - people" on people;
 create policy "internal only - people"

@@ -7,7 +7,7 @@ export type Tenant = {
 
 export type User = {
   id: string
-  B2C_end_user_id: string
+  tenant_id: string
   role: string
   created_at: string
 }
@@ -44,7 +44,7 @@ export type Client = {
 
 export type Appointment = {
   id: string
-  B2C_end_user_id: string
+  tenant_id: string
   client_id: string | null
   name: string | null
   phone: string | null
@@ -67,7 +67,7 @@ export type Appointment = {
 
 export type Task = {
   id: string
-  B2C_end_user_id: string
+  tenant_id: string
   title: string
   is_completed: boolean
   created_at: string

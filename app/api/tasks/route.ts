@@ -1,20 +1,20 @@
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/supabase/queries'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET() {
   try {
     const currentUser = await getCurrentUser()
-    if (!currentUser?.B2C_end_user_id) {
+    if (!currentUser?.tenant_id) {
       return NextResponse.json([], { status: 200 })
     }
 
-    const supabase = createAdminClient()
+    const supabase = await createClient()
 
     const { data, error } = await supabase
       .from('tasks')
       .select('*')
-      .eq('B2C_end_user_id', currentUser.B2C_end_user_id)
+      .eq('tenant_id', currentUser.tenant_id)
       .eq('is_completed', false)
       .order('created_at', { ascending: false })
 
@@ -33,7 +33,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser()
-    if (!currentUser?.B2C_end_user_id) {
+    if (!currentUser?.tenant_id) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
@@ -44,11 +44,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Title required' }, { status: 400 })
     }
 
-    const supabase = createAdminClient()
+    const supabase = await createClient()
 
     const { data, error } = await supabase
       .from('tasks')
-      .insert({ title: title.trim(), B2C_end_user_id: currentUser.B2C_end_user_id })
+      .insert({ title: title.trim(), tenant_id: currentUser.tenant_id })
       .select()
       .single()
 

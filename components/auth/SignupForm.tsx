@@ -75,7 +75,7 @@ export function SignupForm() {
         {
           id: data.user.id,
           email,
-          B2C_end_user_id: tenants.id,
+          tenant_id: tenants.id,
         },
       ])
 

@@ -1,20 +1,20 @@
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/supabase/queries'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
     const currentUser = await getCurrentUser()
-    if (!currentUser?.B2C_end_user_id) {
+    if (!currentUser?.tenant_id) {
       return NextResponse.json([], { status: 200 })
     }
 
-    const supabase = createAdminClient()
+    const supabase = await createClient()
 
     const { data, error } = await supabase
       .from('appointments')
       .select('id, name, phone, email, created_at')
-      .eq('B2C_end_user_id', currentUser.B2C_end_user_id)
+      .eq('tenant_id', currentUser.tenant_id)
       .not('name', 'is', null)
 
     if (error) {

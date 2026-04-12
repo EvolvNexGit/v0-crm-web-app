@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
 
     const {
-      B2C_end_user_id,
+      tenant_id,
       client_id,
       name,
       phone,
@@ -20,15 +20,15 @@ export async function POST(req: Request) {
       remark,
     } = body
 
-    if (!B2C_end_user_id || !date || !name) {
+    if (!tenant_id || !date || !name) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    const supabase = createAdminClient()
+    const supabase = createClient()
 
     const { error } = await supabase.from('appointments').insert([
       {
-        B2C_end_user_id,
+        tenant_id,
         client_id: client_id || null,
         name,
         phone: phone || null,

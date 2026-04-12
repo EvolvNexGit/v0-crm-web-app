@@ -2,17 +2,17 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
-import { useAuth } from '@/components/auth/AuthContext'
 
 export function LoginForm() {
   const router = useRouter()
-  const { setSession } = useAuth()
-  const [userId, setUserId] = useState('')
+  const supabase = createClient()
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -23,25 +23,15 @@ export function LoginForm() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/crm-login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: userId.trim(),
-          password,
-        }),
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data?.error || 'Invalid credentials')
+      if (error) {
+        setError(error.message)
         return
       }
-
-      setSession({ clientId: data.client_id, userId: data.user_id })
 
       router.push('/dashboard')
     } catch (err) {
@@ -62,13 +52,13 @@ export function LoginForm() {
       <CardContent>
         <form onSubmit={handleLogin} className="space-y-5">
           <Field>
-            <FieldLabel htmlFor="user-id" className="text-black font-medium">User ID</FieldLabel>
+            <FieldLabel htmlFor="email" className="text-black font-medium">Email Address</FieldLabel>
             <Input
-              id="user-id"
-              type="text"
-              placeholder="your-user-id"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
               className="border-gray-300 bg-white text-black placeholder:text-gray-500"
