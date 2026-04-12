@@ -41,15 +41,23 @@ export function LoginForm() {
         return
       }
 
-      const clientResponse = await fetch('/api/auth/client', { method: 'GET' })
-      const clientPayload = await clientResponse.json().catch(() => null)
+      const { data: client, error: clientError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('crm_user_id', user.id)
+        .maybeSingle()
 
-      if (!clientResponse.ok || !clientPayload?.client_id) {
-        setError(clientPayload?.error || 'No client mapping found for this user')
+      if (clientError) {
+        setError(clientError.message)
         return
       }
 
-      setClientId(clientPayload.client_id)
+      if (!client?.id) {
+        setError('No client mapping found for this user')
+        return
+      }
+
+      setClientId(client.id)
 
       router.push('/dashboard')
     } catch (err) {

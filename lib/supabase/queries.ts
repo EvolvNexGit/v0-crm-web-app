@@ -1,5 +1,4 @@
 import { createClient } from './server'
-import { createAdminClient } from './admin'
 import type { Client, Appointment, AppointmentWithClient, Task } from './types'
 
 export async function getCurrentUser() {
@@ -20,8 +19,7 @@ export async function getClientId() {
 
   if (!user) return null
 
-  const admin = createAdminClient()
-  const { data: client, error } = await admin
+  const { data: client, error } = await supabase
     .from('clients')
     .select('id')
     .eq('crm_user_id', user.id)
