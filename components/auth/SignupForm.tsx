@@ -46,17 +46,16 @@ export function SignupForm() {
         return
       }
 
-      const mappingResponse = await fetch('/api/auth/client', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      // Create client mapping for this auth user.
+      const { error: clientError } = await supabase.from('clients').insert([
+        {
+          name: tenantName,
+          crm_user_id: data.user.id,
         },
-        body: JSON.stringify({ name: tenantName }),
-      })
+      ])
 
-      if (!mappingResponse.ok) {
-        const mappingError = await mappingResponse.json().catch(() => null)
-        setError(mappingError?.error || 'Failed to create client mapping')
+      if (clientError) {
+        setError('Failed to create client mapping')
         return
       }
 
