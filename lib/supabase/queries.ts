@@ -22,7 +22,7 @@ export async function getClientId() {
   const { data: client, error } = await supabase
     .from('clients')
     .select('id')
-    .eq('crm_user_id', user.id)
+    .eq('user_id', user.id)
     .maybeSingle()
 
   if (error) throw error
