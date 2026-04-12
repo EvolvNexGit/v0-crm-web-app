@@ -50,7 +50,7 @@ export function SignupForm() {
       const { error: clientError } = await supabase.from('clients').insert([
         {
           name: tenantName,
-          user_id: data.user.id,
+          crm_user_id: data.user.id,
         },
       ])
 
