@@ -28,7 +28,7 @@ export function ClientProvider({ children }: { children: React.ReactNode }) {
     const { data: client, error: clientError } = await supabase
       .from('clients')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('crm_user_id', user.id)
       .maybeSingle()
 
     if (clientError) {
