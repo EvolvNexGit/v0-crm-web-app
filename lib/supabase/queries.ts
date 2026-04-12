@@ -44,13 +44,9 @@ export async function getClientId() {
     error = fallbackResult.error
   }
 
-  if (error) {
-    console.error('[getClientId] lookup failed:', error.message)
-    return null
-  }
-
+  if (error) throw error
   if (!client?.id) {
-    return null
+    throw new Error('No client mapping found for authenticated user')
   }
 
   return client.id
