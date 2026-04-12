@@ -25,23 +25,17 @@ export function ClientProvider({ children }: { children: React.ReactNode }) {
       return null
     }
 
-    const { data: client, error: clientError } = await supabase
-      .from('clients')
-      .select('id')
-      .eq('crm_user_id', user.id)
-      .maybeSingle()
+    const response = await fetch('/api/auth/client', { method: 'GET' })
+    const payload = await response.json().catch(() => null)
 
-    if (clientError) {
-      throw new Error(clientError.message)
-    }
-
-    if (!client?.id) {
+    if (!response.ok) {
       setClientId(null)
       return null
     }
 
-    setClientId(client.id)
-    return client.id
+    const resolvedClientId = payload?.client_id ?? null
+    setClientId(resolvedClientId)
+    return resolvedClientId
   }
 
   useEffect(() => {
