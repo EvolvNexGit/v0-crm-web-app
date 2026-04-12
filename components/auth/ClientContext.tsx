@@ -1,7 +1,6 @@
 'use client'
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 type ClientContextValue = {
@@ -14,11 +13,8 @@ type ClientContextValue = {
 const ClientContext = createContext<ClientContextValue | undefined>(undefined)
 
 export function ClientProvider({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
   const [clientId, setClientId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-
-  const isAuthRoute = pathname === '/login' || pathname === '/signup'
 
   const refreshClientId = async () => {
     const supabase = createClient()
@@ -43,32 +39,10 @@ export function ClientProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    const supabase = createClient()
-
-    if (isAuthRoute) {
-      setLoading(false)
-      return
-    }
-
     refreshClientId()
       .catch(() => setClientId(null))
       .finally(() => setLoading(false))
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session?.user) {
-        setClientId(null)
-        return
-      }
-
-      refreshClientId().catch(() => setClientId(null))
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [isAuthRoute])
+  }, [])
 
   const value = useMemo(
     () => ({ clientId, loading, refreshClientId, setClientId }),
