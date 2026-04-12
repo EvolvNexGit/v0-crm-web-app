@@ -13,29 +13,24 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) {
-      redirect('/login')
-    }
-
-    const clientId = await getClientId()
-    if (!clientId) {
-      redirect('/login')
-    }
-
-    return (
-      <div className="flex h-screen bg-background">
-        <Sidebar userEmail={user.email} />
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
-      </div>
-    )
-  } catch (error) {
-    console.error('[dashboard layout] auth/client resolution failed:', error)
+  if (!user) {
     redirect('/login')
   }
+
+  const clientId = await getClientId()
+  if (!clientId) {
+    redirect('/login')
+  }
+
+  return (
+    <div className="flex h-screen bg-background">
+      <Sidebar userEmail={user.email} />
+      <main className="flex-1 overflow-y-auto">
+        {children}
+      </main>
+    </div>
+  )
 }

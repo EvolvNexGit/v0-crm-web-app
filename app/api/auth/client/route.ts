@@ -36,7 +36,7 @@ export async function GET() {
     }
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 403 })
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
     if (!client?.id) {
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     }
 
     if (existingError) {
-      return NextResponse.json({ error: existingError.message }, { status: 403 })
+      return NextResponse.json({ error: existingError.message }, { status: 500 })
     }
 
     if (existing?.id) {
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
     const createError = createResult.error
 
     if (createError) {
-      return NextResponse.json({ error: createError.message }, { status: 403 })
+      return NextResponse.json({ error: createError.message }, { status: 500 })
     }
 
     return NextResponse.json({ client_id: created.id }, { status: 201 })
