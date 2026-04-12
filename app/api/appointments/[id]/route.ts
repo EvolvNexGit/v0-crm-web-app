@@ -1,5 +1,4 @@
-import { createAdminClient } from '@/lib/supabase/admin'
-import { getCurrentUser } from '@/lib/supabase/queries'
+import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function DELETE(
@@ -7,12 +6,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const currentUser = await getCurrentUser()
-    if (!currentUser?.B2C_end_user_id) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
-    }
-
-    const supabase = createAdminClient()
+    const supabase = await createClient()
     const { id } = await params
 
     if (!id) {
@@ -23,7 +17,6 @@ export async function DELETE(
       .from('appointments')
       .delete()
       .eq('id', id)
-      .eq('B2C_end_user_id', currentUser.B2C_end_user_id)
 
     if (error) {
       console.error('Error deleting appointment:', JSON.stringify(error))

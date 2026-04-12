@@ -1,7 +1,6 @@
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/supabase/queries'
 
 export const metadata = {
   title: 'Dashboard - EvolvNex CRM',
@@ -13,24 +12,25 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = createAdminClient()
-  const currentUser = await getCurrentUser()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!currentUser?.B2C_end_user_id) {
+  if (!user) {
     redirect('/login')
   }
 
-  const { data: clientData } = await supabase
-    .from('clients')
-    .select('name')
-    .eq('id', currentUser.B2C_end_user_id)
+  // Get tenant info
+  const { data: userData } = await supabase
+    .from('users')
+    .select('*, tenants(*)')
+    .eq('id', user.id)
     .single()
 
-  const tenantName = clientData?.name
+  const tenantName = userData?.tenants?.name
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar tenantName={tenantName} />
+      <Sidebar userEmail={user.email} tenantName={tenantName} />
       <main className="flex-1 overflow-y-auto">
         {children}
       </main>
