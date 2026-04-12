@@ -46,16 +46,41 @@ export function SignupForm() {
         return
       }
 
-      // Create client mapping for this auth user.
-      const { error: clientError } = await supabase.from('clients').insert([
+      // Create tenant
+      const { error: tenantError } = await supabase.from('tenants').insert([
         {
           name: tenantName,
-          user_id: data.user.id,
         },
       ])
 
-      if (clientError) {
-        setError('Failed to create client mapping')
+      if (tenantError) {
+        setError('Failed to create tenant')
+        return
+      }
+
+      // Get the tenant ID
+      const { data: tenants } = await supabase
+        .from('tenants')
+        .select('id')
+        .eq('name', tenantName)
+        .single()
+
+      if (!tenants) {
+        setError('Failed to retrieve tenant')
+        return
+      }
+
+      // Create user record
+      const { error: userError } = await supabase.from('users').insert([
+        {
+          id: data.user.id,
+          email,
+          tenant_id: tenants.id,
+        },
+      ])
+
+      if (userError) {
+        setError('Failed to create user record')
         return
       }
 

@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET() {
   try {
     const currentUser = await getCurrentUser()
-    if (!currentUser?.client_id) {
+    if (!currentUser?.tenant_id) {
       return NextResponse.json([], { status: 200 })
     }
 
@@ -14,7 +14,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from('tasks')
       .select('*')
-      .eq('client_id', currentUser.client_id)
+      .eq('tenant_id', currentUser.tenant_id)
       .eq('is_completed', false)
       .order('created_at', { ascending: false })
 
@@ -33,7 +33,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser()
-    if (!currentUser?.client_id) {
+    if (!currentUser?.tenant_id) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('tasks')
-      .insert({ title: title.trim(), client_id: currentUser.client_id })
+      .insert({ title: title.trim(), tenant_id: currentUser.tenant_id })
       .select()
       .single()
 
