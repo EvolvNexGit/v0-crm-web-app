@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { redirect } from 'next/navigation'
 import { getClientId } from '@/lib/supabase/queries'
@@ -26,18 +25,9 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  const admin = createAdminClient()
-  const { data: clientData } = await admin
-    .from('clients')
-    .select('name')
-    .eq('id', clientId)
-    .single()
-
-  const tenantName = clientData?.name
-
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar userEmail={user.email} tenantName={tenantName} />
+      <Sidebar userEmail={user.email} />
       <main className="flex-1 overflow-y-auto">
         {children}
       </main>
