@@ -1,7 +1,16 @@
+import { cookies } from 'next/headers'
+import { createAdminClient } from './admin'
 import { createClient } from './server'
 import type { Client, Appointment, AppointmentWithClient, Task } from './types'
 
 export async function getCurrentUser() {
+  const cookieStore = await cookies()
+  const clientId = cookieStore.get('crm_client_id')?.value
+
+  if (clientId) {
+    return { id: clientId, B2C_end_user_id: clientId }
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -18,7 +27,7 @@ export async function getCurrentUser() {
 }
 
 export async function getAppointments() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const currentUser = await getCurrentUser()
   if (!currentUser?.B2C_end_user_id) return []
 
@@ -33,7 +42,7 @@ export async function getAppointments() {
 }
 
 export async function createAppointment(appointment: Partial<Appointment>) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const currentUser = await getCurrentUser()
   if (!currentUser?.B2C_end_user_id) throw new Error('Unauthorized')
 
@@ -48,7 +57,11 @@ export async function createAppointment(appointment: Partial<Appointment>) {
 }
 
 export async function updateAppointmentStatus(id: string, status: Appointment['status']) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
+  const currentUser = await getCurrentUser()
+
+  if (!currentUser?.B2C_end_user_id) throw new Error('Unauthorized')
+
   const { error } = await supabase
     .from('appointments')
     .update({
@@ -56,18 +69,28 @@ export async function updateAppointmentStatus(id: string, status: Appointment['s
       ...(status === 'booked' ? { verified_at: new Date().toISOString() } : {}),
     })
     .eq('id', id)
+    .eq('B2C_end_user_id', currentUser.B2C_end_user_id)
 
   if (error) throw error
 }
 
 export async function deleteAppointment(id: string) {
-  const supabase = await createClient()
-  const { error } = await supabase.from('appointments').delete().eq('id', id)
+  const supabase = createAdminClient()
+  const currentUser = await getCurrentUser()
+
+  if (!currentUser?.B2C_end_user_id) throw new Error('Unauthorized')
+
+  const { error } = await supabase
+    .from('appointments')
+    .delete()
+    .eq('id', id)
+    .eq('B2C_end_user_id', currentUser.B2C_end_user_id)
+
   if (error) throw error
 }
 
 export async function getCustomers() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const currentUser = await getCurrentUser()
   if (!currentUser?.B2C_end_user_id) return []
 
@@ -94,7 +117,7 @@ export async function getCustomers() {
 }
 
 export async function getDashboardStats() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const currentUser = await getCurrentUser()
   if (!currentUser?.B2C_end_user_id) return { total: 0, pending: 0, confirmed: 0, thisMonth: 0 }
 
@@ -119,7 +142,7 @@ export async function getDashboardStats() {
 }
 
 export async function getUpcomingAppointments(limit = 5) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const currentUser = await getCurrentUser()
   if (!currentUser?.B2C_end_user_id) return []
 
@@ -139,7 +162,7 @@ export async function getUpcomingAppointments(limit = 5) {
 }
 
 export async function getTasks() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const currentUser = await getCurrentUser()
   if (!currentUser?.B2C_end_user_id) return []
 
@@ -154,7 +177,7 @@ export async function getTasks() {
 }
 
 export async function createTask(title: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const currentUser = await getCurrentUser()
   if (!currentUser?.B2C_end_user_id) throw new Error('Unauthorized')
 
@@ -169,11 +192,16 @@ export async function createTask(title: string) {
 }
 
 export async function completeTask(id: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
+  const currentUser = await getCurrentUser()
+
+  if (!currentUser?.B2C_end_user_id) throw new Error('Unauthorized')
+
   const { error } = await supabase
     .from('tasks')
     .update({ is_completed: true })
     .eq('id', id)
+    .eq('B2C_end_user_id', currentUser.B2C_end_user_id)
 
   if (error) throw error
 }

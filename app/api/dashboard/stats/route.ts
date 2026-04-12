@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getCurrentUser } from '@/lib/supabase/queries'
 import { NextResponse } from 'next/server'
 
@@ -9,7 +9,7 @@ export async function GET() {
       return NextResponse.json({ total: 0, pending: 0, confirmed: 0, thisMonth: 0 })
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]

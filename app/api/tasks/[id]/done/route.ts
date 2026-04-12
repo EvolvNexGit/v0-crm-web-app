@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getCurrentUser } from '@/lib/supabase/queries'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(
@@ -6,7 +7,12 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient()
+    const currentUser = await getCurrentUser()
+    if (!currentUser?.B2C_end_user_id) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    }
+
+    const supabase = createAdminClient()
     const { id } = await params
 
     if (!id) {
@@ -17,6 +23,7 @@ export async function POST(
       .from('tasks')
       .update({ is_completed: true })
       .eq('id', id)
+      .eq('B2C_end_user_id', currentUser.B2C_end_user_id)
 
     if (error) {
       console.error('Error completing task:', JSON.stringify(error))

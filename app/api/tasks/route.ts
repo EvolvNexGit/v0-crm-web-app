@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getCurrentUser } from '@/lib/supabase/queries'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -9,7 +9,7 @@ export async function GET() {
       return NextResponse.json([], { status: 200 })
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { data, error } = await supabase
       .from('tasks')
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Title required' }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { data, error } = await supabase
       .from('tasks')

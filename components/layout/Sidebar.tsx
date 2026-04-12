@@ -1,27 +1,27 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
 import { BarChart3, Calendar, LogOut } from 'lucide-react'
 import { useState } from 'react'
+import { useAuth } from '@/components/auth/AuthContext'
 
 interface SidebarProps {
-  userEmail?: string
   tenantName?: string
 }
 
-export function Sidebar({ userEmail, tenantName }: SidebarProps) {
+export function Sidebar({ tenantName }: SidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const supabase = createClient()
+  const { clientId, clearSession } = useAuth()
   const [loading, setLoading] = useState(false)
 
   async function handleLogout() {
     setLoading(true)
-    await supabase.auth.signOut()
+    await fetch('/api/crm-logout', { method: 'POST' })
+    clearSession()
     router.push('/login')
   }
 
@@ -81,16 +81,16 @@ export function Sidebar({ userEmail, tenantName }: SidebarProps) {
 
       {/* 🔥 USER + LOGOUT */}
       <div className="border-t p-4 space-y-3">
-        {(userEmail || tenantName) && (
+        {(clientId || tenantName) && (
           <div className="text-sm">
             {tenantName && (
               <p className="font-semibold text-black truncate">
                 {tenantName}
               </p>
             )}
-            {userEmail && (
+            {clientId && (
               <p className="text-gray-500 truncate">
-                {userEmail}
+                {clientId}
               </p>
             )}
           </div>

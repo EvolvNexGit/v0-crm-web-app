@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getCurrentUser } from '@/lib/supabase/queries'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -11,7 +11,7 @@ export async function GET() {
       return NextResponse.json({ data: [], debug: 'no-user-or-tenant' }, { status: 200 })
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     console.log('[appointments API] Fetching for B2C_end_user_id:', currentUser.B2C_end_user_id)
 
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     console.log('[appointments API POST] Creating appointment for tenant:', currentUser.B2C_end_user_id)
 

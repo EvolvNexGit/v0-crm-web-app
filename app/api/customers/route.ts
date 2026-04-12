@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getCurrentUser } from '@/lib/supabase/queries'
 import { NextResponse } from 'next/server'
 
@@ -9,7 +9,7 @@ export async function GET() {
       return NextResponse.json([], { status: 200 })
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { data, error } = await supabase
       .from('appointments')

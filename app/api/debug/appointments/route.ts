@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getCurrentUser } from '@/lib/supabase/queries'
 
 export async function GET() {
@@ -18,7 +18,7 @@ export async function GET() {
       )
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { count, error } = await supabase
       .from('appointments')
       .select('*', { count: 'exact', head: true })
